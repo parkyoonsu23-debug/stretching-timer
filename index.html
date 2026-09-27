@@ -259,7 +259,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 
 <div id="zoom" class="zoom" hidden><img id="zoomImg" alt=""></div>
 
-<script src="images.js"></script>
+<script src="images.js?v=6"></script>
 <script>
 (function(){
 'use strict';
@@ -324,7 +324,7 @@ const ROUTINES=[
  {n:'버드독',d:'좌우 번갈아 8회씩',s:48,reps:16},
  {n:'월드 그레이티스트 스트레치',d:'좌우 5회',s:50,reps:5,sides:LR},
  {n:'깊은 스쿼트 자세에서 좌우로 체중 옮기기',d:'10회',s:40,reps:10},
- {n:'서서 고관절 돌리기',d:'좌우 8회',s:32,reps:8,sides:LR},
+ {n:'서서 골반 돌리기 (손은 허리에)',d:'양방향 8회씩',s:32,reps:8,sides:['한쪽 방향','반대 방향']},
  {n:'벽 앞 발목 가동성 (무릎을 벽 쪽으로 밀기)',d:'좌우 10회',s:30,reps:10,sides:LR},
  {n:'맨몸 굿모닝 (엉덩이 뒤로 빼며 숙이기)',d:'12회',s:36,reps:12},
  {n:'맨몸 스쿼트 (천천히)',d:'10회',s:40,reps:10}
@@ -371,8 +371,10 @@ const GROUPS=[
  {name:'상체 근력',ids:['upperPre','upperPost']}
 ];
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
-const IMGS=window.STRETCH_IMAGES||{};
-const imgFor=(rt,i)=>(IMGS[rt.id]||[])[i]||'';
+const IMG_VERSION='6';
+const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
+const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
+const imgFor=(rt,i)=>imgOk(rt)?(IMGS[rt.id][i]||''):'';
 const SWITCH_SEC=5;
 const CIRC=2*Math.PI*88;
 
@@ -522,7 +524,7 @@ function openPreview(rt,fromPop){
   $('#pvFocus').textContent=rt.focus;
   $('#pvPnf').hidden=!rt.steps.some(s=>s.pnf);
   const list=$('#pvList');list.innerHTML='';
-  list.classList.toggle('has-img',!!(IMGS[rt.id]&&IMGS[rt.id].length));
+  list.classList.toggle('has-img',imgOk(rt));
   rt.steps.forEach((st,i)=>{
     const li=document.createElement('li');
     const no=document.createElement('span');no.className='no';no.textContent=i+1;
