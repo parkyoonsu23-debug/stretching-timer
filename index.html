@@ -259,7 +259,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 
 <div id="zoom" class="zoom" hidden><img id="zoomImg" alt=""></div>
 
-<script src="images.js?v=6"></script>
+<script src="images.js?v=7"></script>
 <script>
 (function(){
 'use strict';
@@ -361,6 +361,30 @@ const ROUTINES=[
  {n:'목 옆 늘리기',d:'좌우 30초',s:30,sides:LR},
  {n:'무릎 꿇고 벤치에 팔꿈치 올려 가슴 내리기',d:'60초',s:60},
  {n:'네발 자세에서 팔 넣어 비틀기 (스레드 더 니들)',d:'좌우 30초',s:30,sides:LR}
+]},
+{id:'fullPre',cell:'운동 전',title:'전신 근력 전 스트레칭',mode:'dynamic',focus:'바닥에서 일어서며 고관절·흉추·어깨·발목 깨우기',steps:[
+ {n:'글루트 브리지 (맨 위에서 2초 멈춤)',d:'12회',s:48,reps:12},
+ {n:'옆으로 누워 팔 펼치기 (오픈 북)',d:'좌우 8회',s:32,reps:8,sides:LR},
+ {n:'버드독',d:'좌우 번갈아 8회씩',s:48,reps:16},
+ {n:'스캐풀라 푸시업 (팔 편 채 날개뼈만 움직이기)',d:'10회',s:30,reps:10},
+ {n:'월드 그레이티스트 스트레치',d:'좌우 4회',s:40,reps:4,sides:LR},
+ {n:'깊은 스쿼트 자세에서 좌우로 체중 옮기기',d:'8회',s:32,reps:8},
+ {n:'벽 앞 발목 가동성 (무릎을 벽 쪽으로 밀기)',d:'좌우 8회',s:24,reps:8,sides:LR},
+ {n:'팔 크게 돌리기',d:'앞, 뒤 각 10회',s:20,reps:10,sides:['앞으로','뒤로']},
+ {n:'맨몸 굿모닝 (엉덩이 뒤로 빼며 숙이기)',d:'10회',s:30,reps:10},
+ {n:'맨몸 스쿼트 (천천히)',d:'10회',s:40,reps:10}
+]},
+{id:'fullPost',cell:'운동 후',title:'전신 근력 후 스트레칭',mode:'static',focus:'서기에서 눕기로 내려가며 상체·하체 전체 유연성',steps:[
+ {n:'한 팔씩 문틀 가슴 스트레칭 (팔 어깨 높이)',d:'좌우 45초 + PNF',s:45,sides:LR,pnf:true,cue:'팔로 문틀 밀기'},
+ {n:'기둥 잡고 엉덩이 뒤로 빼며 광배 스트레칭',d:'60초',s:60},
+ {n:'팔 가로질러 어깨 뒤 스트레칭',d:'좌우 30초',s:30,sides:LR},
+ {n:'벽 짚고 종아리 스트레칭 (뒷무릎 굽힌 상태)',d:'좌우 30초',s:30,sides:LR},
+ {n:'한쪽 무릎 꿇은 고관절 앞쪽 스트레칭',d:'좌우 45초 + PNF',s:45,sides:LR,pnf:true,cue:'뒷무릎으로 바닥 누르기'},
+ {n:'차일드 포즈',d:'45초',s:45},
+ {n:'나비 자세',d:'45초',s:45},
+ {n:'누워서 두 손으로 허벅지 뒤 잡고 다리 펴기',d:'좌우 45초 + PNF',s:45,sides:LR,pnf:true,cue:'다리로 손을 밀어내기'},
+ {n:'누워서 피겨4 둔근 스트레칭',d:'좌우 45초',s:45,sides:LR},
+ {n:'누워서 척추 비틀기',d:'좌우 30초',s:30,sides:LR}
 ]}
 ];
 const GROUPS=[
@@ -368,10 +392,11 @@ const GROUPS=[
  {name:'업무 중',ids:['office']},
  {name:'러닝',ids:['runPre','runPost']},
  {name:'하체 근력',ids:['lowerPre','lowerPost']},
- {name:'상체 근력',ids:['upperPre','upperPost']}
+ {name:'상체 근력',ids:['upperPre','upperPost']},
+ {name:'전신 근력',ids:['fullPre','fullPost']}
 ];
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
-const IMG_VERSION='6';
+const IMG_VERSION='7';
 const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
 const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
 const imgFor=(rt,i)=>imgOk(rt)?(IMGS[rt.id][i]||''):'';
