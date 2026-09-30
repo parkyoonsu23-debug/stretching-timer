@@ -259,7 +259,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 
 <div id="zoom" class="zoom" hidden><img id="zoomImg" alt=""></div>
 
-<script src="images.js?v=7"></script>
+<script src="images.js?v=10"></script>
 <script>
 (function(){
 'use strict';
@@ -281,11 +281,11 @@ const ROUTINES=[
  {n:'앉아서 목 옆 늘리기',d:'좌우 30초',s:30,sides:LR},
  {n:'나비 자세',d:'60초',s:60},
  {n:'네발 자세에서 팔 넣어 비틀기 (스레드 더 니들)',d:'좌우 30초',s:30,sides:LR},
+ {n:'비둘기 자세',d:'좌우 60초',s:60,sides:LR,tip:'앞발 발끝 당기기 · 무릎 아프면 멈추기'},
  {n:'팔 앞으로 뻗은 차일드 포즈',d:'60초',s:60},
  {n:'엎드려 스핑크스 자세',d:'45초',s:45},
  {n:'옆으로 누워 허벅지 앞 스트레칭',d:'좌우 30초',s:30,sides:LR},
  {n:'누워서 두 손으로 허벅지 뒤 잡고 다리 펴기',d:'좌우 60초',s:60,sides:LR},
- {n:'누워서 피겨4 둔근 스트레칭',d:'좌우 60초',s:60,sides:LR},
  {n:'해피 베이비 자세',d:'45초',s:45},
  {n:'누워서 척추 비틀기',d:'좌우 45초',s:45,sides:LR},
  {n:'누워서 온몸 길게 늘렸다가 힘 빼기',d:'3회',s:30,reps:3}
@@ -308,15 +308,15 @@ const ROUTINES=[
  {n:'걸으며 다리 곧게 차올리기',d:'좌우 번갈아 6회씩',s:36,reps:12},
  {n:'제자리 하이니 → 버트킥',d:'각 20초',s:20,k:'move',sides:['하이니','버트킥']}
 ]},
-{id:'runPost',cell:'운동 후',title:'러닝 후 스트레칭',mode:'static',focus:'서기에서 눕기로 내려가며 종아리·고관절·햄스트링',steps:[
- {n:'벽 짚고 종아리 스트레칭 (뒷무릎 편 상태)',d:'좌우 45초',s:45,sides:LR},
- {n:'벽 짚고 종아리 스트레칭 (뒷무릎 굽힌 상태)',d:'좌우 45초',s:45,sides:LR},
+{id:'runPost',cell:'운동 후',title:'러닝 후 스트레칭',mode:'static',focus:'서서 시작해 벤치에 앉아 마무리하는 종아리·고관절·햄스트링',steps:[
+ {n:'벽이나 나무 짚고 종아리 스트레칭 (뒷무릎 편 상태)',d:'좌우 45초',s:45,sides:LR},
+ {n:'벽이나 나무 짚고 종아리 스트레칭 (뒷무릎 굽힌 상태)',d:'좌우 45초',s:45,sides:LR},
  {n:'서서 허벅지 앞 스트레칭',d:'좌우 30초',s:30,sides:LR},
- {n:'한쪽 무릎 꿇은 고관절 앞쪽 스트레칭',d:'좌우 60초 + PNF',s:60,sides:LR,pnf:true,cue:'뒷무릎으로 바닥 누르기'},
- {n:'나비 자세',d:'45초',s:45},
- {n:'앉아서 발바닥 스트레칭 (발가락 몸쪽으로 젖히기)',d:'좌우 30초',s:30,sides:LR},
- {n:'누워서 두 손으로 허벅지 뒤 잡고 다리 펴기',d:'좌우 60초 + PNF',s:60,sides:LR,pnf:true,cue:'다리로 손을 밀어내기'},
- {n:'누워서 피겨4 둔근 스트레칭',d:'좌우 45초',s:45,sides:LR}
+ {n:'벤치에 뒷발 올린 고관절 앞쪽 스트레칭',d:'좌우 60초 + PNF',s:60,sides:LR,pnf:true,cue:'뒷발등으로 벤치 누르기'},
+ {n:'벤치에 발뒤꿈치 올린 햄스트링 스트레칭',d:'좌우 60초 + PNF',s:60,sides:LR,pnf:true,cue:'뒤꿈치로 벤치 누르기'},
+ {n:'벤치에 앉아 다리 넓게 벌리고 숙이기',d:'45초',s:45},
+ {n:'벤치에 앉아 피겨4 둔근 스트레칭',d:'좌우 45초',s:45,sides:LR},
+ {n:'벤치에 앉아 발바닥 스트레칭',d:'좌우 30초',s:30,sides:LR}
 ]},
 {id:'lowerPre',cell:'운동 전',title:'하체 근력 전 스트레칭',mode:'dynamic',focus:'바닥에서 일어서며 고관절·발목·둔근 깨우기',steps:[
  {n:'글루트 브리지 (맨 위에서 2초 멈춤)',d:'12회',s:48,reps:12},
@@ -332,12 +332,12 @@ const ROUTINES=[
 {id:'lowerPost',cell:'운동 후',title:'하체 근력 후 스트레칭',mode:'static',focus:'서기에서 눕기로 내려가며 하체 유연성 집중',steps:[
  {n:'벽 짚고 종아리 스트레칭 (뒷무릎 굽힌 상태)',d:'좌우 45초',s:45,sides:LR},
  {n:'카우치 스트레칭 (뒷발을 벽에 올린 무릎 꿇은 자세)',d:'좌우 60초 + PNF',s:60,sides:LR,pnf:true,cue:'뒷발로 벽 누르기'},
+ {n:'비둘기 자세',d:'좌우 60초',s:60,sides:LR,tip:'앞발 발끝 당기기 · 무릎 아프면 멈추기'},
  {n:'차일드 포즈',d:'60초',s:60},
  {n:'90/90 자세로 앉아 앞다리 쪽으로 상체 숙이기',d:'좌우 45초',s:45,sides:LR},
  {n:'나비 자세',d:'60초 + PNF',s:60,pnf:true,cue:'무릎으로 손 밀어 올리기'},
  {n:'앉아서 다리 넓게 벌려 앞으로 숙이기',d:'60초',s:60},
  {n:'누워서 두 손으로 허벅지 뒤 잡고 다리 펴기',d:'좌우 60초 + PNF',s:60,sides:LR,pnf:true,cue:'다리로 손을 밀어내기'},
- {n:'누워서 피겨4 둔근 스트레칭',d:'좌우 60초',s:60,sides:LR},
  {n:'누워서 두 무릎 가슴으로 당기기',d:'45초',s:45}
 ]},
 {id:'upperPre',cell:'운동 전',title:'상체 근력 전 스트레칭',mode:'dynamic',focus:'바닥에서 일어서며 흉추·어깨 가동성과 안정화',steps:[
@@ -380,10 +380,10 @@ const ROUTINES=[
  {n:'팔 가로질러 어깨 뒤 스트레칭',d:'좌우 30초',s:30,sides:LR},
  {n:'벽 짚고 종아리 스트레칭 (뒷무릎 굽힌 상태)',d:'좌우 30초',s:30,sides:LR},
  {n:'한쪽 무릎 꿇은 고관절 앞쪽 스트레칭',d:'좌우 45초 + PNF',s:45,sides:LR,pnf:true,cue:'뒷무릎으로 바닥 누르기'},
+ {n:'비둘기 자세',d:'좌우 45초',s:45,sides:LR,tip:'앞발 발끝 당기기 · 무릎 아프면 멈추기'},
  {n:'차일드 포즈',d:'45초',s:45},
  {n:'나비 자세',d:'45초',s:45},
  {n:'누워서 두 손으로 허벅지 뒤 잡고 다리 펴기',d:'좌우 45초 + PNF',s:45,sides:LR,pnf:true,cue:'다리로 손을 밀어내기'},
- {n:'누워서 피겨4 둔근 스트레칭',d:'좌우 45초',s:45,sides:LR},
  {n:'누워서 척추 비틀기',d:'좌우 30초',s:30,sides:LR}
 ]}
 ];
@@ -396,7 +396,7 @@ const GROUPS=[
  {name:'전신 근력',ids:['fullPre','fullPost']}
 ];
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
-const IMG_VERSION='7';
+const IMG_VERSION='10';
 const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
 const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
 const imgFor=(rt,i)=>imgOk(rt)?(IMGS[rt.id][i]||''):'';
@@ -565,6 +565,7 @@ function openPreview(rt,fromPop){
     const src=imgFor(rt,i);
     li.appendChild(no);
     if(src){const th=document.createElement('img');th.className='thumb';th.src=src;th.alt='';th.loading='lazy';li.appendChild(th);}
+    else if(imgOk(rt)){const ph=document.createElement('div');ph.className='thumb';li.appendChild(ph);}
     li.appendChild(box);li.appendChild(go);
     list.appendChild(li);
   });
@@ -616,13 +617,14 @@ function paintSegment(){
   if(src){if(im.getAttribute('src')!==src)im.src=src;im.alt=st.n;fig.hidden=false;}else fig.hidden=true;
   $('#tDetail').textContent=st.d;
   let under='',cue='';
-  if(seg.type==='prep'){under='다음 동작';if(st.pnf)cue='힘줄 때: '+st.cue;}
+  if(seg.type==='prep'){under='다음 동작';if(st.pnf)cue='힘줄 때: '+st.cue;else if(st.tip)cue=st.tip;}
   else if(seg.type==='switch'){under='자세 바꾸기';}
   else if(seg.pnf==='stretch'){cue='편안하게 늘린 자세 잡기';}
   else if(seg.pnf==='contract'){cue=st.cue;}
   else if(seg.pnf==='relax'){cue='숨 내쉬며 더 깊게';}
   else if(st.reps){under='목표 '+st.reps+'회';cue='다 하면 건너뛰기';}
   else if(st.tips&&seg.phase&&st.tips[seg.phase]){cue=st.tips[seg.phase];}
+  else if(st.tip){cue=st.tip;}
   underEl.textContent=under;
   $('#tCue').textContent=cue;
   const dots=$('#tDots');
