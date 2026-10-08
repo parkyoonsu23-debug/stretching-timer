@@ -1,10 +1,10 @@
 // 스트레칭 타이머 오프라인 작동 파일
 // 수정본을 올릴 때 VERSION 숫자를 올리면 휴대폰의 앱이 새 파일로 바뀝니다.
-const VERSION = 'v10';
+const VERSION = 'v12';
 const APP_CACHE = 'stretch-timer-app-' + VERSION;
 const FONT_CACHE = 'stretch-timer-fonts';
 const APP_FILES = [
-  './', './index.html', './images.js?v=10', './manifest.webmanifest',
+  './', './index.html', './images.js?v=12', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'
 ];
 
