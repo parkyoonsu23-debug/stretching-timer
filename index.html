@@ -49,6 +49,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 
 /* 목록 */
 .home-head h1{font:700 26px/1.2 var(--ui);letter-spacing:-.01em;margin:10px 0 10px}
+.legend[hidden]{display:none}
+.tabs{display:flex;gap:4px;padding:4px;background:var(--prep-soft);border-radius:12px;margin:0 0 16px}
+.tabs button{flex:1;border:0;background:transparent;border-radius:9px;padding:10px 8px;font-weight:600;font-size:15px;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .legend{list-style:none;margin:0 0 24px;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
 .legend li{display:flex;align-items:center;gap:6px}
 .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
@@ -59,7 +63,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .pair .rt:only-child{grid-column:1/-1}
 .rt{position:relative;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 12px 12px 17px;cursor:pointer;min-height:136px}
 .rt::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:0 3px 3px 0;background:var(--rail)}
-.dynamic{--rail:var(--move)}.static{--rail:var(--stretch)}
+.dynamic{--rail:var(--move)}.static{--rail:var(--stretch)}.strength{--rail:var(--contract)}
 .rt-label{font:600 16px/1.3 var(--ui)}
 .rt-min{display:flex;align-items:baseline;gap:3px;margin:6px 0 4px;color:var(--rail)}
 .rt-min b,.pv-min b{font-family:var(--num);font-weight:700;font-variation-settings:"wdth" 120,"wght" 700;line-height:1}
@@ -74,6 +78,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .toggle input:checked{background:var(--move)}
 .toggle input:checked::after{transform:translateX(16px)}
 .prep-choice{display:flex;align-items:center;gap:6px}
+.prep-choice[hidden]{display:none}
 .prep-choice>span{color:var(--muted);margin-right:2px}
 .prep-choice button{border:1px solid var(--line);background:transparent;border-radius:8px;padding:4px 10px;font-size:13px;cursor:pointer}
 .prep-choice button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
@@ -122,6 +127,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 #timer[data-kind="move"]{--k:var(--move);--k-soft:var(--move-soft);--wd:104}
 #timer[data-kind="stretch"],#timer[data-kind="breath"]{--k:var(--stretch);--k-soft:var(--stretch-soft);--wd:132}
 #timer[data-kind="contract"]{--k:var(--contract);--k-soft:var(--contract-soft);--wd:56}
+#timer[data-kind="set"]{--k:var(--contract);--k-soft:var(--contract-soft);--wd:100}
 #timer[data-kind="breath"][data-breath="in"]{--wd:142}
 #timer[data-kind="breath"][data-breath="out"]{--wd:70}
 .t-top{display:grid;grid-template-columns:40px 1fr 48px;align-items:center;gap:8px}
@@ -151,6 +157,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .dots[hidden]{display:none}
 .dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}
 .dots i.on{background:var(--contract)}
+.set-done{display:block;width:100%;max-width:340px;margin:12px auto 0;background:var(--k);color:var(--paper);border:0;border-radius:14px;padding:16px;font-weight:700;font-size:18px;cursor:pointer}
+.set-done[hidden]{display:none}
+svg[hidden]{display:none}
+#timer.strength .t-figure{height:clamp(110px,21vh,210px);margin-top:6px}
+#timer.strength .ring{--rs:min(40vw,18vh,190px);margin:8px 0 2px}
+#timer.strength .set-done{margin-top:8px;padding:14px}
+#timer.strength .cue{margin-top:4px;min-height:22px}
 .next{margin:0 0 12px;text-align:center;font-size:14px;color:var(--muted);min-height:21px}
 .t-controls{display:flex;justify-content:center;align-items:flex-start;gap:26px}
 .ctl{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;padding:0;cursor:pointer;min-width:64px}
@@ -173,11 +186,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .done-actions button{flex:1}
 
 /* 동작 그림 */
-.t-figure{width:100%;max-width:520px;height:clamp(140px,29vh,300px);margin:10px auto 2px;background:#FBFBFA;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid;place-items:center;padding:6px;cursor:zoom-in}
+.t-figure{width:100%;max-width:520px;height:clamp(140px,29vh,300px);margin:10px auto 2px;background:#FBFBFA;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:6px;cursor:zoom-in}
 .t-figure[hidden]{display:none}
 .t-figure img{max-width:100%;max-height:100%;object-fit:contain;display:block}
 .thumb{width:64px;height:48px;object-fit:contain;background:#FBFBFA;border:1px solid var(--line);border-radius:8px;padding:2px}
-.zoom{position:fixed;inset:0;z-index:20;background:rgba(10,14,13,.88);display:grid;place-items:center;padding:calc(16px + env(safe-area-inset-top,0px)) 12px calc(16px + env(safe-area-inset-bottom,0px));cursor:zoom-out}
+.zoom{position:fixed;inset:0;z-index:20;background:rgba(10,14,13,.88);display:flex;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 12px calc(16px + env(safe-area-inset-bottom,0px));cursor:zoom-out}
 .zoom[hidden]{display:none}
 .zoom img{max-width:100%;max-height:100%;object-fit:contain;background:#FBFBFA;border-radius:12px}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .t-figure img,:root:not([data-theme="light"]) .thumb{filter:brightness(.93)}}
@@ -192,12 +205,17 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 <main id="home" class="screen">
   <header class="home-head">
     <h1>스트레칭 타이머</h1>
-    <ul class="legend">
-      <li><i class="sw move"></i>움직이며 풀기</li>
-      <li><i class="sw stretch"></i>늘린 채 유지</li>
-      <li><i class="sw contract"></i>힘주기 (PNF)</li>
-    </ul>
   </header>
+  <div class="tabs" role="tablist" aria-label="운동 종류">
+    <button type="button" role="tab" id="tabStretch" data-tab="stretch">스트레칭</button>
+    <button type="button" role="tab" id="tabStrength" data-tab="strength">근력 운동</button>
+  </div>
+  <ul class="legend" id="legendStretch">
+    <li><i class="sw move"></i>움직이며 풀기</li>
+    <li><i class="sw stretch"></i>늘린 채 유지</li>
+    <li><i class="sw contract"></i>힘주기 (PNF)</li>
+  </ul>
+  <p class="legend" id="legendStrength" hidden>세트를 마치면 '세트 완료'를 누르세요. 쉬는 시간은 자동으로 재요.</p>
   <div id="groups"></div>
   <section class="settings" aria-label="설정">
     <label class="toggle"><input type="checkbox" id="setSound">소리</label>
@@ -208,13 +226,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
       <button type="button" data-vol="high">크게</button>
     </div>
     <label class="toggle" id="voiceWrap"><input type="checkbox" id="setVoice">음성 안내</label>
-    <div class="prep-choice" role="group" aria-label="동작 사이 준비 시간">
+    <div class="prep-choice" data-for="stretch" role="group" aria-label="동작 사이 준비 시간">
       <span>준비 시간</span>
       <button type="button" data-prep="5">5초</button>
       <button type="button" data-prep="7">7초</button>
       <button type="button" data-prep="10">10초</button>
     </div>
-    <div class="prep-choice" role="group" aria-label="동작 시간">
+    <div class="prep-choice" data-for="stretch" role="group" aria-label="동작 시간">
       <span>동작 시간</span>
       <button type="button" data-len="short">짧게</button>
       <button type="button" data-len="normal">보통</button>
@@ -255,6 +273,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
     </button>
     <p id="tCue" class="cue"></p>
     <div id="tDots" class="dots" hidden aria-hidden="true"><i></i><i></i><i></i></div>
+    <button type="button" id="tSetDone" class="set-done" hidden>세트 완료</button>
   </div>
   <p id="tNext" class="next"></p>
   <div class="t-controls">
@@ -279,7 +298,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 
 <div id="zoom" class="zoom" hidden><img id="zoomImg" alt=""></div>
 
-<script src="images.js?v=13"></script>
+<script src="images.js?v=15"></script>
 <script>
 (function(){
 'use strict';
@@ -404,18 +423,53 @@ const ROUTINES=[
  {n:'차일드 포즈',d:'45초',s:45},
  {n:'나비 자세',d:'45초',s:45},
  {n:'누워서 척추 비틀기',d:'좌우 30초',s:30,sides:LR}
+]},
+{id:'upperA',cell:'상체 근력 A',title:'상체 근력 A (수평축)',mode:'strength',focus:'가슴·등 중심 24세트. 짝지은 동작은 쉬지 않고 이어서',type:'strength',steps:[
+ {n:'벤치프레스',d:'5세트 × 4~5회',rp:'4~5회',est:35},
+ {n:'케이블 로우',d:'5세트 × 6~8회',rp:'6~8회',est:40},
+ {n:'덤벨 오버헤드프레스',d:'3세트 × 6~8회 · 중간 무게',rp:'6~8회',est:40},
+ {n:'인클라인 덤벨 프레스',d:'3세트 × 6~8회 · 사이드 레터럴과 이어서',rp:'6~8회',est:40},
+ {n:'덤벨 사이드 레터럴',d:'3세트 × 12~15회',rp:'12~15회',est:45},
+ {n:'양손 덤벨 로우',d:'3세트 × 6~8회 · 해머컬과 이어서',rp:'6~8회',est:40},
+ {n:'덤벨 해머컬',d:'3세트 × 8~12회',rp:'8~12회',est:40},
+ {n:'케이블 크런치',d:'2세트 × 12~15회 · 페이스풀과 이어서',rp:'12~15회',est:45},
+ {n:'페이스풀',d:'2세트 × 12~15회',rp:'12~15회',est:45},
+ {n:'팔로프 프레스',d:'3세트 × 좌우 10~12회 · 리버스 플라이와 이어서',rp:'10~12회',per:'좌우 각각',est:60},
+ {n:'케이블 원암 리버스 플라이',d:'3세트 × 좌우 12~15회',rp:'12~15회',per:'좌우 각각',est:60}
+],blocks:[
+ {i:[0],sets:5,rest:120},{i:[1],sets:5,rest:120},{i:[2],sets:3,rest:60},
+ {i:[3,4],sets:3,rest:60},{i:[5,6],sets:3,rest:60},{i:[7,8],sets:2,rest:45},{i:[9,10],sets:3,rest:45}
+]},
+{id:'fullA',cell:'전신 근력 A',title:'전신 근력 A',mode:'strength',focus:'하체·가슴·등을 한 번에, 24세트. 짝지은 동작은 쉬지 않고 이어서',type:'strength',steps:[
+ {n:'백스쿼트',d:'5세트 × 4~5회',rp:'4~5회',est:45},
+ {n:'루마니안 데드리프트',d:'3세트 × 6~8회',rp:'6~8회',est:40},
+ {n:'벤치프레스',d:'4세트 × 4~5회 · 정강이 컬과 이어서',rp:'4~5회',est:35},
+ {n:'정강이 컬',d:'4세트 × 15~20회',rp:'15~20회',est:45},
+ {n:'케이블 로우',d:'3세트 × 6~8회 · 한다리 카프 레이즈와 이어서',rp:'6~8회',est:40},
+ {n:'한다리 카프 레이즈',d:'3세트 × 8~12회',rp:'8~12회',per:'한 다리씩',est:50},
+ {n:'덤벨 오버헤드프레스',d:'3세트 × 5회 · 리버스 런지와 이어서',rp:'5회',est:30},
+ {n:'리버스 런지',d:'3세트 × 8~10회',rp:'8~10회',est:50},
+ {n:'랫풀다운 (와이드 그립)',d:'3세트 × 5~6회 · 케이블 크런치와 이어서',rp:'5~6회',est:35},
+ {n:'케이블 크런치',d:'3세트 × 12~15회',rp:'12~15회',est:45},
+ {n:'케이블 스탠딩 레그 컬',d:'3세트 × 좌우 10~12회 · 힙 어브덕션과 이어서',rp:'10~12회',per:'좌우 각각',est:60},
+ {n:'케이블 힙 어브덕션',d:'3세트 × 좌우 12~15회 · 로우 풀리, 앵클 스트랩',rp:'12~15회',per:'좌우 각각',est:60}
+],blocks:[
+ {i:[0],sets:5,rest:120},{i:[1],sets:3,rest:90},{i:[2,3],sets:4,rest:90},
+ {i:[4,5],sets:3,rest:60},{i:[6,7],sets:3,rest:60},{i:[8,9],sets:3,rest:60},{i:[10,11],sets:3,rest:45}
 ]}
 ];
 const GROUPS=[
- {name:'매일',ids:['morning','night']},
- {name:'업무 중',ids:['office']},
- {name:'러닝',ids:['runPre','runPost']},
- {name:'하체 근력',ids:['lowerPre','lowerPost']},
- {name:'상체 근력',ids:['upperPre','upperPost']},
- {name:'전신 근력',ids:['fullPre','fullPost']}
+ {tab:'stretch',name:'매일',ids:['morning','night']},
+ {tab:'stretch',name:'업무 중',ids:['office']},
+ {tab:'stretch',name:'러닝',ids:['runPre','runPost']},
+ {tab:'stretch',name:'하체 근력',ids:['lowerPre','lowerPost']},
+ {tab:'stretch',name:'상체 근력',ids:['upperPre','upperPost']},
+ {tab:'stretch',name:'전신 근력',ids:['fullPre','fullPost']},
+ {tab:'strength',name:'상체 근력',ids:['upperA']},
+ {tab:'strength',name:'전신 근력',ids:['fullA']}
 ];
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
-const IMG_VERSION='13';
+const IMG_VERSION='15';
 const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
 const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
 const imgFor=(rt,i)=>imgOk(rt)?(IMGS[rt.id][i]||''):'';
@@ -462,6 +516,7 @@ function scaleStep(st,k){
   return o;
 }
 function view(rt){
+  if(rt.type==='strength')return rt;
   const k=LEN[settings.len]||1;
   return k===1?rt:Object.assign({},rt,{steps:rt.steps.map(st=>scaleStep(st,k))});
 }
@@ -476,7 +531,26 @@ function pnfPattern(T){
     {dur:5,pnf:'contract',cycle:3},{dur:r3,pnf:'relax',cycle:3}
   ];
 }
+const SET_MAX=21600;
+const fmtRest=n=>n>=60&&n%60===0?(n/60)+'분':n+'초';
+const segW=s=>s.est!=null?s.est:s.dur;
+function buildStrength(rt){
+  const segs=[],seq=[];
+  rt.blocks.forEach(b=>{
+    const ids=b.i.filter(i=>!isHidden(rt,rt.steps[i]));
+    for(let n=1;n<=b.sets&&ids.length;n++)ids.forEach((i,k)=>seq.push({i,n,total:b.sets,rest:k===ids.length-1?b.rest:0,pair:ids[k+1]}));
+  });
+  seq.forEach((x,k)=>{
+    const st=rt.steps[x.i],last=k===seq.length-1;
+    const hint=x.pair!=null?'끝나면 바로 '+rt.steps[x.pair].n:(last?'마지막 세트':'끝나면 휴식 '+fmtRest(x.rest));
+    segs.push({type:'set',step:x.i,setNo:x.n,setTotal:x.total,manual:true,dur:SET_MAX,est:st.est||40,hint,last});
+    if(x.rest&&!last){const nx=seq[k+1];segs.push({type:'rest',step:nx.i,setNo:nx.n,setTotal:nx.total,dur:x.rest});}
+  });
+  return segs;
+}
+const setCount=rt=>rt.blocks.reduce((a,b)=>a+(b.i.some(i=>!isHidden(rt,rt.steps[i]))?b.sets:0),0);
 function buildSegments(rt){
+  if(rt.type==='strength')return buildStrength(rt);
   const segs=[];
   rt.steps.forEach((st,i)=>{
     if(isHidden(rt,st))return;
@@ -494,7 +568,7 @@ function buildSegments(rt){
   });
   return segs;
 }
-const totalSec=rt=>buildSegments(rt).reduce((a,s)=>a+s.dur,0);
+const totalSec=rt=>buildSegments(rt).reduce((a,s)=>a+segW(s),0);
 
 /* 소리: 휴대폰 스피커가 잘 내는 1~2kHz 음역, 압축기로 음량 끌어올림 */
 const VOL={low:0.35,mid:0.65,high:1};
@@ -535,7 +609,7 @@ function tone(freq,ms,when,vol,type){
 }
 /* 신호음 목록: [주파수, 길이(ms), 지연(초), 크기, 파형] */
 function cueTones(seg){
-  if(seg.type==='prep')return [[1175,160,0,.85]];
+  if(seg.type==='prep'||seg.type==='rest')return [[1175,160,0,.85]];
   if(seg.type==='switch')return [[1319,160,0,.85]];
   if(seg.pnf==='contract')return [[988,130,0,.45,'square'],[988,130,.2,.45,'square']];
   if(seg.pnf==='relax')return [[1760,170,0,.8],[1319,260,.18,.8]];
@@ -563,16 +637,17 @@ function book(withStart){
     const base=nowA+Math.max(0,(atP-nowP)/1000);
     list.forEach(x=>{const o=toneAt(bus,x[0],x[1],base+x[2],x[3],x[4]);if(o)booked.push(o);});
   };
-  let t=R.segStart;
+  let t=R.segStart,open=false;
   for(let j=R.idx;j<R.segs.length;j++){
     const seg=R.segs[j],ms=seg.dur*1000;
     if(j>R.idx||withStart)add(t,cueTones(seg));
+    if(seg.manual){open=true;break;}   /* 세트는 끝나는 때를 몰라서 그 뒤는 누를 때 예약 */
     if((seg.type!=='work'||seg.last)&&seg.dur>=5){
       for(let w=3;w>=1;w--){const at=t+ms-w*1000;if(at>nowP)add(at,[TICK]);}
     }
     t+=ms;
   }
-  add(t,CHIME);
+  if(!open)add(t,CHIME);
 }
 function letRing(){ /* 자연스럽게 끝날 때: 마지막 차임은 끝까지 울리게 두기 */
   const b=bus;bus=null;booked=[];
@@ -632,9 +707,17 @@ function show(id){
 }
 
 /* 목록 */
+let tab=store.get('tab','stretch');if(tab!=='strength')tab='stretch';
+function paintTabs(){
+  document.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===tab;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});
+  $('#legendStretch').hidden=tab!=='stretch';$('#legendStrength').hidden=tab!=='strength';
+  document.querySelectorAll('[data-for="stretch"]').forEach(x=>{x.hidden=tab!=='stretch';});
+}
+function setTab(t){tab=t;store.set('tab',t);paintTabs();renderHome();window.scrollTo(0,0);}
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
 function renderHome(){
   const wrap=$('#groups');wrap.innerHTML='';
-  GROUPS.forEach(g=>{
+  GROUPS.filter(g=>g.tab===tab).forEach(g=>{
     const sec=document.createElement('section');sec.className='group';
     const h=document.createElement('h2');h.textContent=g.name;sec.appendChild(h);
     const pair=document.createElement('div');pair.className='pair';
@@ -646,7 +729,7 @@ function renderHome(){
       b.querySelector('.rt-label').textContent=rt.cell;
       b.querySelector('.rt-min b').textContent=mins;
       b.querySelector('.rt-focus').textContent=rt.focus;
-      b.querySelector('.rt-count').textContent=cnt+'동작'+(off?' · '+off+'개 뺌':'');
+      b.querySelector('.rt-count').textContent=cnt+'동작'+(rt.type==='strength'?' · '+setCount(rt)+'세트':'')+(off?' · '+off+'개 뺌':'');
       b.addEventListener('click',()=>openPreview(rt));
       pair.appendChild(b);
     });
@@ -670,8 +753,9 @@ function paintPreview(){
   const cnt=shownSteps(rt).length,off=rt.steps.length-cnt;
   $('#pvMin').innerHTML='<b></b><span>분</span>';$('#pvMin b').textContent=Math.round(totalSec(v)/60);
   let meta=cnt+'동작';
+  if(rt.type==='strength')meta+=' · '+setCount(rt)+'세트';
   if(off)meta+=' · '+off+'개 뺌';
-  if(settings.len!=='normal')meta+=' · 시간 '+(settings.len==='short'?'짧게':'길게');
+  if(settings.len!=='normal'&&rt.type!=='strength')meta+=' · 시간 '+(settings.len==='short'?'짧게':'길게');
   $('#pvCount').textContent=meta;
   $('#pvPnf').hidden=!v.steps.some(st=>st.pnf&&!isHidden(rt,st));
   const ed=$('#pvEdit');ed.textContent=editing?'완료':'동작 빼기';ed.setAttribute('aria-pressed',String(editing));
@@ -721,6 +805,7 @@ arcEl.style.strokeDasharray=String(CIRC);
 
 function prepIndexOf(step){return R.segs.findIndex(s=>s.step===step&&s.type==='prep');}
 function kindOf(seg,st){
+  if(seg.type==='set')return 'set';
   if(seg.type!=='work')return 'prep';
   if(seg.pnf==='contract')return 'contract';
   if(st.k==='breath')return 'breath';
@@ -728,6 +813,8 @@ function kindOf(seg,st){
   return 'stretch';
 }
 function stateLabel(seg,st){
+  if(seg.type==='set')return '세트 '+seg.setNo+' / '+seg.setTotal;
+  if(seg.type==='rest')return '휴식';
   if(seg.type==='prep')return '준비';
   if(seg.type==='switch')return (seg.phase||'반대쪽')+' 준비';
   if(seg.pnf==='stretch')return '늘리기';
@@ -738,6 +825,11 @@ function stateLabel(seg,st){
   return '늘린 채 유지';
 }
 function nextText(){
+  if(R.rt.type==='strength'){
+    if(R.segs[R.idx].type==='rest')return '휴식이 끝나면 바로 시작';
+    for(let j=R.idx+1;j<R.segs.length;j++){const s=R.segs[j];if(s.type==='set')return '다음: '+R.rt.steps[s.step].n+' '+s.setNo+'/'+s.setTotal;}
+    return '마지막 세트';
+  }
   for(let j=R.idx+1;j<R.segs.length;j++){
     const s=R.segs[j];
     if(s.type==='switch')return '다음: '+s.phase;
@@ -751,7 +843,8 @@ function paintSegment(){
   delete T.dataset.breath;
   $('#tStep').textContent=(R.order.indexOf(seg.step)+1)+' / '+R.order.length;
   let side='';
-  if(st.sides)side=(seg.type==='prep')?st.sides[0]+'부터':(seg.phase||'');
+  if(seg.type==='rest')side='다음 '+seg.setNo+' / '+seg.setTotal+'세트';
+  else if(st.sides)side=(seg.type==='prep')?st.sides[0]+'부터':(seg.phase||'');
   $('#tSide').textContent=side;
   $('#tState').textContent=stateLabel(seg,st);
   $('#tName').textContent=st.n;
@@ -759,7 +852,9 @@ function paintSegment(){
   if(src){if(im.getAttribute('src')!==src)im.src=src;im.alt=st.n;fig.hidden=false;}else fig.hidden=true;
   $('#tDetail').textContent=st.d;
   let under='',cue='';
-  if(seg.type==='prep'){under='다음 동작';if(st.pnf)cue='힘줄 때: '+st.cue;else if(st.tip)cue=st.tip;}
+  if(seg.type==='set'){under=st.per||'목표 횟수';cue=seg.hint;}
+  else if(seg.type==='rest'){under='쉬는 시간';cue=seg.setNo+'세트째 · '+st.rp+(st.per?' '+st.per:'');}
+  else if(seg.type==='prep'){under='다음 동작';if(st.pnf)cue='힘줄 때: '+st.cue;else if(st.tip)cue=st.tip;}
   else if(seg.type==='switch'){under='자세 바꾸기';}
   else if(seg.pnf==='stretch'){cue='편안하게 늘린 자세 잡기';}
   else if(seg.pnf==='contract'){cue=st.cue;}
@@ -775,8 +870,11 @@ function paintSegment(){
     Array.prototype.forEach.call(dots.children,(d,i)=>d.classList.toggle('on',i<seg.cycle));
   }else dots.hidden=true;
   $('#tNext').textContent=nextText();
+  const sd=$('#tSetDone');sd.hidden=seg.type!=='set';sd.textContent=seg.last?'마지막 세트 완료':'세트 완료';
 }
 function cueVoice(seg,st){
+  if(seg.type==='set'){say(speakName(st.n)+', '+seg.setNo+'세트. '+st.rp+(st.per?', '+st.per:''));return;}
+  if(seg.type==='rest'){say('휴식 '+fmtRest(seg.dur)+'. 다음, '+speakName(st.n)+', '+seg.setNo+'세트');return;}
   if(seg.type==='prep'){say((R.idx===R.startIdx?'첫 동작, ':'다음 동작, ')+speakName(st.n)+'. '+speakDetail(st.d));return;}
   if(seg.type==='switch'){say((seg.phase||'반대쪽')+' 준비');return;}
   if(st.k==='breath'){say('코로 천천히 들이마시고, 입으로 길게 내쉬세요');return;}
@@ -791,11 +889,18 @@ function enterSegment(announce){
   if(announce&&!R.paused){
     const seg=R.segs[R.idx],st=R.rt.steps[seg.step];
     cueVoice(seg,st);
-    buzz(seg.type==='work'?(seg.pnf==='contract'?[120]:[60,40,60]):[40]);
+    buzz(seg.type==='work'||seg.type==='set'?(seg.pnf==='contract'?[120]:[60,40,60]):[40]);
   }
 }
 function render(rem){
   const seg=R.segs[R.idx],st=R.rt.steps[seg.step];
+  if(seg.manual){
+    if(numEl.textContent!==st.rp){numEl.textContent=st.rp;numEl.classList.toggle('long',st.rp.length>2);}
+    arcEl.style.strokeDashoffset='0';
+    barEl.style.transform='scaleX('+Math.min(1,R.cum[R.idx]/R.total)+')';
+    if(R.paused&&underEl.textContent!=='탭해서 계속')underEl.textContent='탭해서 계속';
+    return;
+  }
   const whole=Math.max(0,Math.ceil(rem-0.001));
   const txt=whole>=60?Math.floor(whole/60)+':'+String(whole%60).padStart(2,'0'):String(whole);
   if(numEl.textContent!==txt){numEl.textContent=txt;numEl.classList.toggle('long',txt.length>2);}
@@ -815,7 +920,7 @@ function render(rem){
 function advance(now){
   if(R.paused)return true;
   let moved=false;
-  while(now-R.segStart>=R.segs[R.idx].dur*1000){
+  while(!R.segs[R.idx].manual&&now-R.segStart>=R.segs[R.idx].dur*1000){
     if(R.idx>=R.segs.length-1){finish(true);return false;}
     R.segStart+=R.segs[R.idx].dur*1000;
     R.idx++;moved=true;
@@ -834,7 +939,7 @@ function frame(){
 function bgTick(){if(R&&R.active)advance(performance.now());}
 function paintPlay(){
   T.classList.toggle('paused',R.paused);
-  $('#icPause').hidden=R.paused;$('#icPlay').hidden=!R.paused;
+  $('#icPause').toggleAttribute('hidden',R.paused);$('#icPlay').toggleAttribute('hidden',!R.paused);
   const lab=R.paused?'계속':'일시정지';
   $('#tPlayLabel').textContent=lab;
   $('#tPlay').setAttribute('aria-label',lab);
@@ -863,6 +968,11 @@ function jump(i){
   if(!R.paused)book(true);
 }
 function goPrev(){
+  if(R.rt.type==='strength'){
+    let j=R.idx-1;while(j>=0&&R.segs[j].type!=='set')j--;
+    if(R.segs[R.idx].type==='rest'&&j>=0){jump(j);return;}
+    jump(j>=0?j:R.idx);return;
+  }
   const p=prepIndexOf(R.segs[R.idx].step);
   if(R.idx>p){jump(p);return;}
   let j=p-1;while(j>=0&&R.segs[j].type!=='prep')j--;
@@ -881,12 +991,14 @@ function startRoutine(rt,fromStep,replace){
   if(R){R.active=false;if(R.raf)cancelAnimationFrame(R.raf);if(R.iv)clearInterval(R.iv);}
   unbook();
   const cum=[];let acc=0;
-  segs.forEach((s,i)=>{cum[i]=acc;acc+=s.dur;});
+  segs.forEach((s,i)=>{cum[i]=acc;acc+=segW(s);});
   R={rt:v,base:rt,segs,cum,total:acc,idx:0,active:true,paused:false,pausedTotal:0};
-  R.order=segs.filter(s=>s.type==='prep').map(s=>s.step);
-  let si=segs.findIndex(s=>s.type==='prep'&&s.step>=(fromStep||0));if(si<0)si=0;
+  const mark=v.type==='strength'?'set':'prep';
+  R.order=[];segs.forEach(s=>{if(s.type===mark&&R.order.indexOf(s.step)<0)R.order.push(s.step);});
+  let si=segs.findIndex(s=>s.type===mark&&s.step>=(fromStep||0));if(si<0)si=0;
   R.idx=si;R.startIdx=si;
   R.segStart=performance.now();R.startedAt=R.segStart;
+  T.classList.toggle('strength',v.type==='strength');
   $('#tTitle').textContent=v.title;
   $('#tConfirm').hidden=true;
   show('timer');paintPlay();lockScreen();
@@ -923,6 +1035,7 @@ $('#tRing').addEventListener('click',togglePause);
 $('#tPlay').addEventListener('click',togglePause);
 $('#tPrev').addEventListener('click',goPrev);
 $('#tSkip').addEventListener('click',goSkip);
+$('#tSetDone').addEventListener('click',goSkip);
 function openConfirm(){
   if(!R||!R.active||!$('#tConfirm').hidden)return;
   R.wasPaused=R.paused;
@@ -999,7 +1112,7 @@ window.addEventListener('popstate',e=>{
 });
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
 
-renderHome();
+paintTabs();renderHome();
 })();
 </script>
 </body>
