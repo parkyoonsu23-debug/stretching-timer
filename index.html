@@ -50,6 +50,12 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 /* 목록 */
 .home-head h1{font:700 26px/1.2 var(--ui);letter-spacing:-.01em;margin:10px 0 10px}
 .legend[hidden]{display:none}
+.resume{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--contract);border-radius:12px;padding:12px 14px;margin:0 0 16px}
+.resume[hidden]{display:none}
+.resume-txt{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.resume-txt span{font-size:13.5px;color:var(--muted)}
+.resume-act{display:flex;gap:8px}
+.resume-act button{flex:1;padding:11px 12px;font-size:15px}
 .tabs{display:flex;gap:4px;padding:4px;background:var(--prep-soft);border-radius:12px;margin:0 0 16px}
 .tabs button{flex:1;border:0;background:transparent;border-radius:9px;padding:10px 8px;font-weight:600;font-size:15px;color:var(--muted);cursor:pointer}
 .tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
@@ -188,6 +194,16 @@ svg[hidden]{display:none}
 /* 동작 그림 */
 .t-figure{width:100%;max-width:520px;height:clamp(140px,29vh,300px);margin:10px auto 2px;background:#FBFBFA;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:6px;cursor:zoom-in}
 .t-figure[hidden]{display:none}
+.t-figs{display:flex;gap:8px;width:100%;max-width:520px;margin:0 auto}
+.t-figs .t-figure{flex:1 1 0;min-width:0;max-width:none;margin:10px 0 2px}
+.pair-list{list-style:none;margin:6px auto 0;padding:0;width:100%;max-width:360px;display:grid;gap:6px}
+.pair-list[hidden],#tName[hidden],#tDetail[hidden]{display:none}
+.pair-list li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:baseline;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+.pair-list b{color:var(--k);font-size:14px}
+.pair-list .pn{font-weight:700;font-size:15px}
+.pair-list .pr{color:var(--muted);font-size:13px;white-space:nowrap}
+#timer.pair .t-figure{height:clamp(96px,17vh,170px)}
+#timer.pair.strength .ring{--rs:min(38vw,17vh,165px)}
 .t-figure img{max-width:100%;max-height:100%;object-fit:contain;display:block}
 .thumb{width:64px;height:48px;object-fit:contain;background:#FBFBFA;border:1px solid var(--line);border-radius:8px;padding:2px}
 .zoom{position:fixed;inset:0;z-index:20;background:rgba(10,14,13,.88);display:flex;align-items:center;justify-content:center;padding:calc(16px + env(safe-area-inset-top,0px)) 12px calc(16px + env(safe-area-inset-bottom,0px));cursor:zoom-out}
@@ -206,6 +222,10 @@ svg[hidden]{display:none}
   <header class="home-head">
     <h1>스트레칭 타이머</h1>
   </header>
+  <div id="resume" class="resume" hidden>
+    <div class="resume-txt"><b id="resumeTitle"></b><span id="resumeInfo"></span></div>
+    <div class="resume-act"><button type="button" id="resumeGo" class="primary">이어서 하기</button><button type="button" id="resumeDrop" class="ghost">그만두기</button></div>
+  </div>
   <div class="tabs" role="tablist" aria-label="운동 종류">
     <button type="button" role="tab" id="tabStretch" data-tab="stretch">스트레칭</button>
     <button type="button" role="tab" id="tabStrength" data-tab="strength">근력 운동</button>
@@ -226,6 +246,7 @@ svg[hidden]{display:none}
       <button type="button" data-vol="high">크게</button>
     </div>
     <label class="toggle" id="voiceWrap"><input type="checkbox" id="setVoice">음성 안내</label>
+    <label class="toggle"><input type="checkbox" id="setKeep">화면 꺼도 계속 (다른 음악이 멈출 수 있어요)</label>
     <div class="prep-choice" data-for="stretch" role="group" aria-label="동작 사이 준비 시간">
       <span>준비 시간</span>
       <button type="button" data-prep="5">5초</button>
@@ -262,10 +283,11 @@ svg[hidden]{display:none}
   </div>
   <div class="t-progress"><i id="tBar"></i></div>
   <div class="t-main">
-    <button type="button" class="t-figure" id="tFigure" aria-label="그림 크게 보기" hidden><img id="tImg" alt=""></button>
+    <div class="t-figs"><button type="button" class="t-figure" id="tFigure" aria-label="그림 크게 보기" hidden><img id="tImg" alt=""></button><button type="button" class="t-figure" id="tFigure2" aria-label="그림 크게 보기" hidden><img id="tImg2" alt=""></button></div>
     <div class="tags" aria-live="polite"><span id="tSide" class="tag"></span><span id="tState" class="tag"></span></div>
     <h2 id="tName" aria-live="polite"></h2>
     <p id="tDetail"></p>
+    <ul id="tPair" class="pair-list" hidden></ul>
     <button type="button" id="tRing" class="ring" aria-label="일시정지">
       <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="track" cx="100" cy="100" r="88"/><circle id="tArc" class="arc" cx="100" cy="100" r="88"/></svg>
       <span id="tNum" class="num">0</span>
@@ -543,7 +565,7 @@ const store={
   get(k,d){try{const v=localStorage.getItem('stretch-timer:'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
   set(k,v){try{localStorage.setItem('stretch-timer:'+k,JSON.stringify(v));}catch(e){}}
 };
-const settings=Object.assign({sound:true,voice:true,prep:7,vol:'high',len:'normal'},store.get('settings',{}));
+const settings=Object.assign({sound:true,voice:true,prep:7,vol:'high',len:'normal',keep:true},store.get('settings',{}));
 if([5,7,10].indexOf(settings.prep)<0)settings.prep=7;
 if(['low','mid','high'].indexOf(settings.vol)<0)settings.vol='high';
 const LEN={short:0.7,normal:1,long:1.3};
@@ -600,13 +622,14 @@ function buildStrength(rt){
   const segs=[],seq=[];
   rt.blocks.forEach(b=>{
     const ids=b.i.filter(i=>!isHidden(rt,rt.steps[i]));
-    for(let n=1;n<=b.sets&&ids.length;n++)ids.forEach((i,k)=>seq.push({i,n,total:b.sets,rest:k===ids.length-1?b.rest:0,pair:ids[k+1]}));
+    for(let n=1;n<=b.sets&&ids.length;n++)seq.push({i:ids[0],i2:ids.length>1?ids[1]:null,n,total:b.sets,rest:b.rest});
   });
   seq.forEach((x,k)=>{
     const st=rt.steps[x.i],last=k===seq.length-1;
-    const hint=x.pair!=null?'끝나면 바로 '+rt.steps[x.pair].n:(last?'마지막 세트':'끝나면 휴식 '+fmtRest(x.rest));
-    segs.push({type:'set',step:x.i,setNo:x.n,setTotal:x.total,manual:true,dur:SET_MAX,est:st.est||40,hint,last});
-    if(x.rest&&!last){const nx=seq[k+1];segs.push({type:'rest',step:nx.i,setNo:nx.n,setTotal:nx.total,dur:x.rest});}
+    const hint=last?'마지막 세트':'끝나면 휴식 '+fmtRest(x.rest);
+    const est=(st.est||40)+(x.i2!=null?(rt.steps[x.i2].est||40):0);
+    segs.push({type:'set',step:x.i,step2:x.i2,setNo:x.n,setTotal:x.total,manual:true,dur:SET_MAX,est,hint,last});
+    if(x.rest&&!last){const nx=seq[k+1];segs.push({type:'rest',step:nx.i,step2:nx.i2,setNo:nx.n,setTotal:nx.total,dur:x.rest});}
   });
   return segs;
 }
@@ -716,7 +739,51 @@ function letRing(){ /* 자연스럽게 끝날 때: 마지막 차임은 끝까지
   if(b)setTimeout(()=>{try{b.disconnect();}catch(e){}},3000);
 }
 const wantKeep=()=>settings.sound||settings.voice;
+let keepEl=null,keepUrl=null;
+function silentWav(){ /* 6초짜리 거의 안 들리는 저음 (재생 중인 미디어로 인식되게 함) */
+  if(keepUrl)return keepUrl;
+  const sr=8000,n=sr*6,b=new Uint8Array(44+n*2),dv=new DataView(b.buffer);
+  const w=(o,s)=>{for(let i=0;i<s.length;i++)b[o+i]=s.charCodeAt(i);};
+  w(0,'RIFF');dv.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+  dv.setUint32(24,sr,true);dv.setUint32(28,sr*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);w(36,'data');dv.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++)dv.setInt16(44+i*2,Math.round(Math.sin(2*Math.PI*40*i/sr)*8),true);
+  try{keepUrl=URL.createObjectURL(new Blob([b],{type:'audio/wav'}));}
+  catch(e){let s='';for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));keepUrl='data:audio/wav;base64,'+btoa(s);}
+  return keepUrl;
+}
+function keepMedia(on){
+  try{
+    if(on&&settings.keep){
+      if(!keepEl){keepEl=new Audio();keepEl.loop=true;keepEl.src=silentWav();}
+      const p=keepEl.play();if(p&&p.catch)p.catch(()=>{});
+    }else if(keepEl){keepEl.pause();}
+  }catch(e){}
+}
+/* 잠금 화면·알림창에서 보이는 정보와 버튼 */
+function updateMedia(){
+  try{
+    if(!('mediaSession' in navigator)||typeof MediaMetadata==='undefined'||!R||!R.active)return;
+    const seg=R.segs[R.idx],st=R.rt.steps[seg.step];
+    let t=pairName(seg);
+    if(seg.type==='set')t+=' · 세트 '+seg.setNo+'/'+seg.setTotal;
+    else if(seg.type==='rest')t='휴식 · 다음 '+pairName(seg);
+    else if(seg.type==='prep')t='준비 · '+st.n;
+    navigator.mediaSession.metadata=new MediaMetadata({title:t,artist:R.rt.title,album:'운동 타이머'});
+    navigator.mediaSession.playbackState=R.paused?'paused':'playing';
+  }catch(e){}
+}
+function initMediaSession(){
+  try{
+    if(!('mediaSession' in navigator))return;
+    const set=(a,f)=>{try{navigator.mediaSession.setActionHandler(a,f);}catch(e){}};
+    set('play',()=>{if(R&&R.active&&R.paused)togglePause();});
+    set('pause',()=>{if(R&&R.active&&!R.paused)togglePause();});
+    set('nexttrack',()=>{if(R&&R.active)goSkip();});
+    set('previoustrack',()=>{if(R&&R.active)goPrev();});
+  }catch(e){}
+}
 function keepAlive(on){
+  keepMedia(on);
   if(!ac)return;
   try{
     if(on&&!keep){
@@ -777,7 +844,26 @@ function paintTabs(){
 }
 function setTab(t){tab=t;store.set('tab',t);paintTabs();renderHome();window.scrollTo(0,0);}
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+function savedRun(){
+  const s=store.get('run',null);
+  if(!s||typeof s!=='object'||!byId[s.rid]||!(Date.now()-s.savedAt<6*3600e3))return null;
+  return s;
+}
+function paintResume(){
+  const s=savedRun(),box=$('#resume');
+  if(!s){box.hidden=true;return;}
+  const rt=byId[s.rid],segs=buildSegments(view(rt)),seg=segs[Math.min(Math.max(0,s.idx|0),segs.length-1)];
+  if(!seg){box.hidden=true;return;}
+  const st=rt.steps[seg.step];
+  let info=st.n;
+  if(seg.type==='set')info='세트 '+seg.setNo+'/'+seg.setTotal+' · '+st.n;
+  else if(seg.type==='rest')info='휴식 중 · 다음 '+st.n;
+  $('#resumeTitle').textContent='진행 중이던 '+rt.title;
+  $('#resumeInfo').textContent=info;
+  box.hidden=false;
+}
 function renderHome(){
+  paintResume();
   const wrap=$('#groups');wrap.innerHTML='';
   GROUPS.filter(g=>g.tab===tab).forEach(g=>{
     const sec=document.createElement('section');sec.className='group';
@@ -886,10 +972,11 @@ function stateLabel(seg,st){
   if(st.k==='move'||st.reps)return '움직이기';
   return '늘린 채 유지';
 }
+const pairName=seg=>R.rt.steps[seg.step].n+(seg.step2!=null?' + '+R.rt.steps[seg.step2].n:'');
 function nextText(){
   if(R.rt.type==='strength'){
     if(R.segs[R.idx].type==='rest')return '휴식이 끝나면 바로 시작';
-    for(let j=R.idx+1;j<R.segs.length;j++){const s=R.segs[j];if(s.type==='set')return '다음: '+R.rt.steps[s.step].n+' '+s.setNo+'/'+s.setTotal;}
+    for(let j=R.idx+1;j<R.segs.length;j++){const s=R.segs[j];if(s.type==='set')return '다음: '+pairName(s)+' '+s.setNo+'/'+s.setTotal;}
     return '마지막 세트';
   }
   for(let j=R.idx+1;j<R.segs.length;j++){
@@ -909,13 +996,22 @@ function paintSegment(){
   else if(st.sides)side=(seg.type==='prep')?st.sides[0]+'부터':(seg.phase||'');
   $('#tSide').textContent=side;
   $('#tState').textContent=stateLabel(seg,st);
+  const pair=seg.step2!=null&&(seg.type==='set'||seg.type==='rest'),st2=pair?R.rt.steps[seg.step2]:null;
+  T.classList.toggle('pair',pair);
+  $('#tName').hidden=pair;$('#tDetail').hidden=pair;$('#tPair').hidden=!pair;
   $('#tName').textContent=st.n;
   const src=imgFor(R.rt,seg.step),fig=$('#tFigure'),im=$('#tImg');
   if(src){if(im.getAttribute('src')!==src)im.src=src;im.alt=st.n;fig.hidden=false;}else fig.hidden=true;
+  const src2=pair?imgFor(R.rt,seg.step2):'',fig2=$('#tFigure2'),im2=$('#tImg2');
+  if(src2){if(im2.getAttribute('src')!==src2)im2.src=src2;im2.alt=st2.n;fig2.hidden=false;}else fig2.hidden=true;
+  if(pair){
+    const row=(k,x)=>'<li><b>'+k+'</b><span class="pn">'+x.n+'</span><span class="pr">'+x.rp+(x.per?' · '+x.per:'')+'</span></li>';
+    $('#tPair').innerHTML=row('A',st)+row('B',st2);
+  }
   $('#tDetail').textContent=st.d;
   let under='',cue='';
-  if(seg.type==='set'){under=st.per||'목표 횟수';cue=seg.hint;}
-  else if(seg.type==='rest'){under='쉬는 시간';cue=seg.setNo+'세트째 · '+st.rp+(st.per?' '+st.per:'');}
+  if(seg.type==='set'){under=pair?'연달아':(st.per||'목표 횟수');cue=seg.hint;}
+  else if(seg.type==='rest'){under='쉬는 시간';cue=pair?seg.setNo+'세트째 · A, B 순서':seg.setNo+'세트째 · '+st.rp+(st.per?' '+st.per:'');}
   else if(seg.type==='prep'){under='다음 동작';if(st.pnf)cue='힘줄 때: '+st.cue;else if(st.tip)cue=st.tip;}
   else if(seg.type==='switch'){under='자세 바꾸기';}
   else if(seg.pnf==='stretch'){cue='편안하게 늘린 자세 잡기';}
@@ -935,8 +1031,9 @@ function paintSegment(){
   const sd=$('#tSetDone');sd.hidden=seg.type!=='set';sd.textContent=seg.last?'마지막 세트 완료':'세트 완료';
 }
 function cueVoice(seg,st){
+  if(seg.type==='set'&&seg.step2!=null){const b=R.rt.steps[seg.step2];say(speakName(st.n)+', 이어서 '+speakName(b.n)+', '+seg.setNo+'세트');return;}
   if(seg.type==='set'){say(speakName(st.n)+', '+seg.setNo+'세트. '+st.rp+(st.per?', '+st.per:''));return;}
-  if(seg.type==='rest'){say('휴식 '+fmtRest(seg.dur)+'. 다음, '+speakName(st.n)+', '+seg.setNo+'세트');return;}
+  if(seg.type==='rest'){say('휴식 '+fmtRest(seg.dur)+'. 다음, '+speakName(st.n)+(seg.step2!=null?', 이어서 '+speakName(R.rt.steps[seg.step2].n):'')+', '+seg.setNo+'세트');return;}
   if(seg.type==='prep'){say((R.idx===R.startIdx?'첫 동작, ':'다음 동작, ')+speakName(st.n)+'. '+speakDetail(st.d));return;}
   if(seg.type==='switch'){say((seg.phase||'반대쪽')+' 준비');return;}
   if(st.k==='breath'){say('코로 천천히 들이마시고, 입으로 길게 내쉬세요');return;}
@@ -946,8 +1043,16 @@ function cueVoice(seg,st){
   if(seg.pnf==='stretch'){say(lead+'늘려 주세요');return;}
   say(lead+'시작');
 }
+/* 진행 상황 저장: 앱이 꺼져도 이어서 할 수 있게 (이 기기에서만) */
+function persist(){
+  if(!R||!R.active)return;
+  const w=Date.now(),p=performance.now();
+  store.set('run',{rid:R.base.id,idx:R.idx,segStart:w-(p-R.segStart),started:w-(p-R.startedAt),pausedTotal:R.pausedTotal||0,
+    paused:!!R.paused,pauseRemain:R.paused?R.pauseRemain:0,savedAt:w});
+}
+function clearRun(){try{localStorage.removeItem('stretch-timer:run');}catch(e){}}
 function enterSegment(announce){
-  paintSegment();
+  paintSegment();persist();updateMedia();
   if(announce&&!R.paused){
     const seg=R.segs[R.idx],st=R.rt.steps[seg.step];
     cueVoice(seg,st);
@@ -957,7 +1062,8 @@ function enterSegment(announce){
 function render(rem){
   const seg=R.segs[R.idx],st=R.rt.steps[seg.step];
   if(seg.manual){
-    if(numEl.textContent!==st.rp){numEl.textContent=st.rp;numEl.classList.toggle('long',st.rp.length>2);}
+    const mt=seg.step2!=null?'A + B':st.rp;
+    if(numEl.textContent!==mt){numEl.textContent=mt;numEl.classList.toggle('long',mt.length>2);}
     arcEl.style.strokeDashoffset='0';
     barEl.style.transform='scaleX('+Math.min(1,R.cum[R.idx]/R.total)+')';
     if(R.paused&&underEl.textContent!=='탭해서 계속')underEl.textContent='탭해서 계속';
@@ -1020,7 +1126,7 @@ function togglePause(){
     R.segStart=now-(R.segs[R.idx].dur*1000-R.pauseRemain);
     paintSegment();book(false);keepAlive(wantKeep());
   }
-  paintPlay();
+  paintPlay();persist();updateMedia();
 }
 function jump(i){
   R.idx=Math.max(0,Math.min(R.segs.length-1,i));
@@ -1044,7 +1150,7 @@ function goSkip(){
   if(R.idx>=R.segs.length-1){finish();return;}
   jump(R.idx+1);
 }
-function startRoutine(rt,fromStep,replace){
+function startRoutine(rt,fromStep,replace,restore){
   const v=view(rt),segs=buildSegments(v);
   if(!segs.length)return;
   ensureAudio();
@@ -1057,22 +1163,32 @@ function startRoutine(rt,fromStep,replace){
   R={rt:v,base:rt,segs,cum,total:acc,idx:0,active:true,paused:false,pausedTotal:0};
   const mark=v.type==='strength'?'set':'prep';
   R.order=[];segs.forEach(s=>{if(s.type===mark&&R.order.indexOf(s.step)<0)R.order.push(s.step);});
-  let si=segs.findIndex(s=>s.type===mark&&s.step>=(fromStep||0));if(si<0)si=0;
+  let si=segs.findIndex(s=>s.type===mark&&(s.step>=(fromStep||0)||(s.step2!=null&&s.step2>=(fromStep||0))));if(si<0)si=0;
   R.idx=si;R.startIdx=si;
   R.segStart=performance.now();R.startedAt=R.segStart;
+  if(restore){
+    const now=performance.now(),wall=Date.now();
+    R.idx=Math.min(Math.max(0,restore.idx|0),segs.length-1);R.startIdx=R.idx;
+    R.startedAt=now-(wall-restore.started);R.pausedTotal=restore.pausedTotal||0;
+    if(restore.paused){R.paused=true;R.pausedAt=now;R.pauseRemain=restore.pauseRemain||0;R.segStart=now-(segs[R.idx].dur*1000-R.pauseRemain);}
+    else R.segStart=now-(wall-restore.segStart);
+  }
   T.classList.toggle('strength',v.type==='strength');
   $('#tTitle').textContent=v.title;
   $('#tConfirm').hidden=true;
+  if(restore&&!R.paused&&!advance(performance.now()))return;   /* 꺼져 있던 동안 지난 구간은 건너뜀 */
   show('timer');paintPlay();lockScreen();
-  enterSegment(true);
-  book(true);keepAlive(wantKeep());
+  enterSegment(!restore);
+  if(!R.paused)book(!restore);
+  keepAlive(!R.paused&&wantKeep());
+  initMediaSession();
   R.raf=requestAnimationFrame(frame);
   R.iv=setInterval(bgTick,250);
 }
 function finish(natural){
   const now=performance.now();
   R.active=false;cancelAnimationFrame(R.raf);clearInterval(R.iv);releaseLock();
-  keepAlive(false);
+  keepAlive(false);clearRun();
   if(natural)letRing();else{unbook();chime();}
   $('#zoom').hidden=true;
   const secs=Math.max(0,Math.round((now-R.startedAt-R.pausedTotal)/1000));
@@ -1082,13 +1198,15 @@ function finish(natural){
 }
 function stop(){
   if(R){R.active=false;cancelAnimationFrame(R.raf);clearInterval(R.iv);}
-  unbook();keepAlive(false);
+  unbook();keepAlive(false);clearRun();
   releaseLock();hush();
   $('#tConfirm').hidden=true;
   history.back();
 }
 
 /* 이벤트 */
+$('#resumeGo').addEventListener('click',()=>{const s=savedRun();if(s)startRoutine(byId[s.rid],0,false,s);});
+$('#resumeDrop').addEventListener('click',()=>{clearRun();paintResume();});
 $('#pvBack').addEventListener('click',()=>history.back());
 $('#pvStart').addEventListener('click',()=>startRoutine(current,0));
 $('#pvEdit').addEventListener('click',()=>{editing=!editing;paintPreview();});
@@ -1111,11 +1229,11 @@ $('#tStay').addEventListener('click',()=>{
 });
 $('#tEnd').addEventListener('click',stop);
 let zoomClosing=false;
-$('#tFigure').addEventListener('click',()=>{
-  const src=$('#tImg').getAttribute('src');if(!src)return;
-  $('#zoomImg').src=src;$('#zoomImg').alt=$('#tImg').alt;$('#zoom').hidden=false;
+[['#tFigure','#tImg'],['#tFigure2','#tImg2']].forEach(([f,i])=>$(f).addEventListener('click',()=>{
+  const src=$(i).getAttribute('src');if(!src)return;
+  $('#zoomImg').src=src;$('#zoomImg').alt=$(i).alt;$('#zoom').hidden=false;
   history.pushState({s:'zoom'},'');
-});
+}));
 function closeZoom(){if($('#zoom').hidden)return;$('#zoom').hidden=true;zoomClosing=true;history.back();}
 $('#zoom').addEventListener('click',closeZoom);
 $('#dAgain').addEventListener('click',()=>startRoutine(R.base,0,true));
@@ -1129,11 +1247,15 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'&&R&&R.active){lockScreen();bgTick();}
+  else persist();
 });
+window.addEventListener('pagehide',persist);
 
 /* 설정 */
 const sSound=$('#setSound'),sVoice=$('#setVoice');
 sSound.checked=settings.sound;sVoice.checked=settings.voice;
+const sKeep=$('#setKeep');sKeep.checked=settings.keep;
+sKeep.addEventListener('change',()=>{settings.keep=sKeep.checked;saveSettings();if(R&&R.active&&!R.paused)keepMedia(true);if(!sKeep.checked&&keepEl)keepEl.pause();});
 if(!canSpeak)$('#voiceWrap').hidden=true;
 sSound.addEventListener('change',()=>{settings.sound=sSound.checked;saveSettings();if(sSound.checked){ensureAudio();tone(1319,160,0,.85);}});
 document.querySelectorAll('[data-vol]').forEach(b=>{
