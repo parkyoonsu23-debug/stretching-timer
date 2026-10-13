@@ -281,7 +281,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v25</p>
+    <p class="ver">앱 버전 v26</p>
   </section>
 </main>
 
@@ -646,7 +646,8 @@ let LOG=store.get('log',{}),DONE=store.get('done',{});
 const wStep=n=>/덤벨|레이즈|플라이|컬/.test(n)?1:2.5;
 function repRange(rp){const m=rp.match(/(\d+)\D*~\D*(\d+)/);if(m)return[+m[1],+m[2]];const o=rp.match(/(\d+)/);return o?[+o[1],+o[1]]:[8,8];}
 const fmtW=w=>String(Math.round(w*100)/100);
-function lastSession(name,sid){const a=LOG[name]||[];for(let i=a.length-1;i>=0;i--)if(a[i].t!==sid)return a[i];return null;}
+const setLbl=(sg,sp)=>(sg.warm?'워밍업':'세트')+(sp||' ')+sg.setNo+(sp?' / ':'/')+sg.setTotal;
+function lastSession(name,sid){const a=LOG[name]||[];for(let i=a.length-1;i>=0;i--)if(a[i].t!==sid&&a[i].sets.length)return a[i];return null;}
 function thisSession(name,sid){return(LOG[name]||[]).find(x=>x.t===sid)||null;}
 /* 이번 세트에 미리 채울 값과 안내 문구 */
 function logDefault(st,setNo,setTotal,sid){
@@ -666,16 +667,26 @@ function logDefault(st,setNo,setTotal,sid){
   const same=prev.sets[Math.min(setNo,prev.sets.length)-1];
   return{w:same.w,r:same.r,hint,up};
 }
+function warmDefault(st,seg,sid){
+  const e=thisSession(st.n,sid),done=e&&e.warm&&e.warm.find(x=>x.n===seg.setNo);
+  if(done)return{w:done.w,r:done.r,hint:'',up:false};
+  const k=seg.setNo-1,f=[.5,.7,.85][k],rr=[8,5,3][k],step=wStep(st.n);
+  const wk=R.segs.find(x=>x.type==='set'&&!x.warm),W=logDefault(st,1,wk?wk.setTotal:5,sid).w;
+  if(!(W>0))return{w:0,r:rr,hint:'처음이에요. 가벼운 무게로 시작하세요',up:false};
+  let w=Math.round(W*f/step)*step;const bar=step===1?0:20;
+  if(w<bar)w=bar;if(w>=W)w=Math.max(0,W-step);
+  return{w,r:rr,hint:'작업 '+fmtW(W)+'kg의 약 '+Math.round(f*100)+'% · 기록에 섞이지 않아요',up:false};
+}
 function logRow(st,i,seg,label){
-  const d=logDefault(st,seg.setNo,seg.setTotal,R.sid),step=wStep(st.n);
+  const d=seg.warm?warmDefault(st,seg,R.sid):logDefault(st,seg.setNo,seg.setTotal,R.sid),step=wStep(st.n);
   const row=document.createElement('div');row.className='lg-row';row.dataset.step=i;row.dataset.ws=step;
   row.innerHTML='<div class="lg-top"><span class="lg-n"></span><span class="lg-t"></span></div>'+
    '<div class="lg-ctls"><div class="lg-c" data-k="w"><button type="button" data-d="-1" aria-label="무게 줄이기">−</button><label><input class="lg-w" type="text" inputmode="decimal" aria-label="무게(kg)">kg</label><button type="button" data-d="1" aria-label="무게 늘리기">+</button></div>'+
    '<div class="lg-c" data-k="r"><button type="button" data-d="-1" aria-label="횟수 줄이기">−</button><label><input class="lg-r" type="text" inputmode="numeric" aria-label="횟수">회</label><button type="button" data-d="1" aria-label="횟수 늘리기">+</button></div></div>'+
    '<div class="lg-h"></div>';
   const n=row.querySelector('.lg-n');
-  if(label){const b=document.createElement('i');b.textContent=label;n.appendChild(b);n.appendChild(document.createTextNode(st.n));}else n.textContent=st.rp+(st.per?' · '+st.per:'');
-  row.querySelector('.lg-t').textContent=label?st.rp+(st.per?' · '+st.per:''):'목표';
+  if(label){const b=document.createElement('i');b.textContent=label;n.appendChild(b);n.appendChild(document.createTextNode(st.n));}else n.textContent=seg.warm?'워밍업 · 가볍게':st.rp+(st.per?' · '+st.per:'');
+  row.querySelector('.lg-t').textContent=label?st.rp+(st.per?' · '+st.per:''):(seg.warm?'':'목표');
   row.querySelector('.lg-w').value=fmtW(d.w);row.querySelector('.lg-r').value=d.r;
   const h=row.querySelector('.lg-h');h.textContent=d.hint;h.classList.toggle('up',d.up);h.hidden=!d.hint;
   row.querySelectorAll('.lg-c button').forEach(b=>b.addEventListener('click',()=>{
@@ -693,20 +704,6 @@ function paintLog(seg){
   const st=R.rt.steps[seg.step];box.innerHTML='';
   if(seg.step2!=null){box.appendChild(logRow(st,seg.step,seg,'A'));box.appendChild(logRow(R.rt.steps[seg.step2],seg.step2,seg,'B'));}
   else box.appendChild(logRow(st,seg.step,seg,''));
-  /* 첫 운동 1세트: 워밍업 안내 (기록에는 넣지 않음) */
-  const first=R.segs.find(x=>x.type==='set');
-  box.onclick=box.oninput=null;
-  if(seg===first&&seg.setNo===1&&seg.step2==null){
-    const warm=document.createElement('div');warm.className='lg-warm';box.insertBefore(warm,box.firstChild);
-    const upd=()=>{
-      const inp=box.querySelector('.lg-w'),W=parseFloat(String(inp.value).replace(',','.'))||0;
-      if(W<=0){warm.textContent='워밍업: 가벼운 무게로 8회 → 5회 → 3회 (작업 무게를 넣으면 계산해 드려요)';return;}
-      const step=wStep(st.n),rd=v=>Math.round(v/step)*step,bar=step===1?0:20;
-      const parts=[[.5,8],[.7,5],[.85,3]].map(([f,r])=>{const w=rd(W*f);return(bar&&w<=bar?'빈 바':fmtW(w)+'kg')+'×'+r;});
-      warm.textContent='워밍업 (쉬는 시간 1분) '+parts.join(' → ');
-    };
-    upd();box.onclick=box.oninput=upd;
-  }
 }
 /* 세트 완료를 누르면 입력값을 저장 */
 function commitSet(){
@@ -718,9 +715,10 @@ function commitSet(){
     if(!r)return;
     const a=LOG[st.n]||(LOG[st.n]=[]);
     let e=a.find(x=>x.t===R.sid);if(!e){e={t:R.sid,rid:R.base.id,sets:[]};a.push(e);}
-    const k=e.sets.findIndex(x=>x.n===seg.setNo);
-    if(k>=0)e.sets[k]={n:seg.setNo,w,r};else e.sets.push({n:seg.setNo,w,r});
-    e.sets.sort((x,y)=>x.n-y.n);
+    const list=seg.warm?(e.warm||(e.warm=[])):e.sets;   /* 워밍업은 따로 보관해 증량 제안에 섞이지 않게 */
+    const k=list.findIndex(x=>x.n===seg.setNo);
+    if(k>=0)list[k]={n:seg.setNo,w,r};else list.push({n:seg.setNo,w,r});
+    list.sort((x,y)=>x.n-y.n);
     if(a.length>40)a.splice(0,a.length-40);
   });
   store.set('log',LOG);
@@ -746,12 +744,17 @@ function buildStrength(rt){
     const ids=b.i.filter(i=>!isHidden(rt,rt.steps[i]));
     for(let n=1;n<=b.sets&&ids.length;n++)seq.push({i:ids[0],i2:ids.length>1?ids[1]:null,n,total:b.sets,rest:b.rest});
   });
+  /* 기록하는 루틴은 첫 운동 앞에 워밍업 3세트(가볍게 → 작업 무게 근처)를 일반 세트처럼 둔다 */
+  if(logOn(rt)&&seq.length&&seq[0].i2==null){
+    const w=[];for(let n=1;n<=3;n++)w.push({i:seq[0].i,i2:null,n,total:3,rest:60,warm:true});
+    seq.unshift.apply(seq,w);
+  }
   seq.forEach((x,k)=>{
     const st=rt.steps[x.i],last=k===seq.length-1;
     const hint=last?'마지막 세트':'끝나면 휴식 '+fmtRest(x.rest);
-    const est=(st.est||40)+(x.i2!=null?(rt.steps[x.i2].est||40):0);
-    segs.push({type:'set',step:x.i,step2:x.i2,setNo:x.n,setTotal:x.total,manual:true,dur:SET_MAX,est,hint,last});
-    if(x.rest&&!last){const nx=seq[k+1];segs.push({type:'rest',step:nx.i,step2:nx.i2,setNo:nx.n,setTotal:nx.total,dur:x.rest});}
+    const est=x.warm?30:(st.est||40)+(x.i2!=null?(rt.steps[x.i2].est||40):0);
+    segs.push({type:'set',step:x.i,step2:x.i2,setNo:x.n,setTotal:x.total,warm:!!x.warm,manual:true,dur:SET_MAX,est,hint,last});
+    if(x.rest&&!last){const nx=seq[k+1];segs.push({type:'rest',step:nx.i,step2:nx.i2,setNo:nx.n,setTotal:nx.total,warm:!!nx.warm,dur:x.rest});}
   });
   return segs;
 }
@@ -887,7 +890,7 @@ function updateMedia(){
     if(!('mediaSession' in navigator)||typeof MediaMetadata==='undefined'||!R||!R.active)return;
     const seg=R.segs[R.idx],st=R.rt.steps[seg.step];
     let t=pairName(seg);
-    if(seg.type==='set')t+=' · 세트 '+seg.setNo+'/'+seg.setTotal;
+    if(seg.type==='set')t+=' · '+setLbl(seg);
     else if(seg.type==='rest')t='휴식 · 다음 '+pairName(seg);
     else if(seg.type==='prep')t='준비 · '+st.n;
     navigator.mediaSession.metadata=new MediaMetadata({title:t,artist:R.rt.title,album:'운동 타이머'});
@@ -979,7 +982,7 @@ function paintResume(){
   if(!seg){box.hidden=true;return;}
   const st=rt.steps[seg.step];
   let info=st.n;
-  if(seg.type==='set')info='세트 '+seg.setNo+'/'+seg.setTotal+' · '+st.n;
+  if(seg.type==='set')info=setLbl(seg)+' · '+st.n;
   else if(seg.type==='rest')info='휴식 중 · 다음 '+st.n;
   $('#resumeTitle').textContent='진행 중이던 '+rt.title;
   $('#resumeInfo').textContent=info;
@@ -1091,7 +1094,7 @@ function kindOf(seg,st){
   return 'stretch';
 }
 function stateLabel(seg,st){
-  if(seg.type==='set')return '세트 '+seg.setNo+' / '+seg.setTotal;
+  if(seg.type==='set')return setLbl(seg,' ');
   if(seg.type==='rest')return '휴식';
   if(seg.type==='prep')return '준비';
   if(seg.type==='switch')return (seg.phase||'반대쪽')+' 준비';
@@ -1106,7 +1109,7 @@ const pairName=seg=>R.rt.steps[seg.step].n+(seg.step2!=null?' + '+R.rt.steps[seg
 function nextText(){
   if(R.rt.type==='strength'){
     if(R.segs[R.idx].type==='rest')return '휴식이 끝나면 바로 시작';
-    for(let j=R.idx+1;j<R.segs.length;j++){const s=R.segs[j];if(s.type==='set')return '다음: '+pairName(s)+' '+s.setNo+'/'+s.setTotal;}
+    for(let j=R.idx+1;j<R.segs.length;j++){const s=R.segs[j];if(s.type==='set')return '다음: '+pairName(s)+' '+setLbl(s);}
     return '마지막 세트';
   }
   for(let j=R.idx+1;j<R.segs.length;j++){
@@ -1122,7 +1125,7 @@ function paintSegment(){
   delete T.dataset.breath;
   $('#tStep').textContent=(R.order.indexOf(seg.step)+1)+' / '+R.order.length;
   let side='';
-  if(seg.type==='rest')side='다음 '+seg.setNo+' / '+seg.setTotal+'세트';
+  if(seg.type==='rest')side=seg.warm?'다음 워밍업 '+seg.setNo+' / '+seg.setTotal:'다음 '+seg.setNo+' / '+seg.setTotal+'세트';
   else if(st.sides)side=(seg.type==='prep')?st.sides[0]+'부터':(seg.phase||'');
   $('#tSide').textContent=side;
   $('#tState').textContent=stateLabel(seg,st);
@@ -1139,10 +1142,10 @@ function paintSegment(){
     const row=(k,x)=>'<li><b>'+k+'</b><span class="pn">'+x.n+'</span><span class="pr">'+x.rp+(x.per?' · '+x.per:'')+'</span></li>';
     $('#tPair').innerHTML=row('A',st)+row('B',st2);
   }
-  $('#tDetail').textContent=st.d;
+  $('#tDetail').textContent=seg.warm?'워밍업 3세트 후 본 세트: '+st.d:st.d;
   let under='',cue='';
   if(seg.type==='set'){under=pair?'연달아':(st.per||'목표 횟수');cue=seg.hint;}
-  else if(seg.type==='rest'){under='쉬는 시간';cue=pair?seg.setNo+'세트째 · A, B 순서':seg.setNo+'세트째 · '+st.rp+(st.per?' '+st.per:'');}
+  else if(seg.type==='rest'){under='쉬는 시간';cue=seg.warm?'워밍업 '+seg.setNo+'세트째 · 가볍게':pair?seg.setNo+'세트째 · A, B 순서':seg.setNo+'세트째 · '+st.rp+(st.per?' '+st.per:'');}
   else if(seg.type==='prep'){under='다음 동작';if(st.pnf)cue='힘줄 때: '+st.cue;else if(st.tip)cue=st.tip;}
   else if(seg.type==='switch'){under='자세 바꾸기';}
   else if(seg.pnf==='stretch'){cue='편안하게 늘린 자세 잡기';}
@@ -1164,8 +1167,9 @@ function paintSegment(){
 }
 function cueVoice(seg,st){
   if(seg.type==='set'&&seg.step2!=null){const b=R.rt.steps[seg.step2];say(speakName(st.n)+', 이어서 '+speakName(b.n)+', '+seg.setNo+'세트');return;}
+  if(seg.type==='set'&&seg.warm){say(speakName(st.n)+', 워밍업 '+seg.setNo+'세트');return;}
   if(seg.type==='set'){say(speakName(st.n)+', '+seg.setNo+'세트. '+st.rp+(st.per?', '+st.per:''));return;}
-  if(seg.type==='rest'){say('휴식 '+fmtRest(seg.dur)+'. 다음, '+speakName(st.n)+(seg.step2!=null?', 이어서 '+speakName(R.rt.steps[seg.step2].n):'')+', '+seg.setNo+'세트');return;}
+  if(seg.type==='rest'){say('휴식 '+fmtRest(seg.dur)+'. 다음, '+speakName(st.n)+(seg.step2!=null?', 이어서 '+speakName(R.rt.steps[seg.step2].n):'')+', '+(seg.warm?'워밍업 ':'')+seg.setNo+'세트');return;}
   if(seg.type==='prep'){say((R.idx===R.startIdx?'첫 동작, ':'다음 동작, ')+speakName(st.n)+'. '+speakDetail(st.d));return;}
   if(seg.type==='switch'){say((seg.phase||'반대쪽')+' 준비');return;}
   if(st.k==='breath'){say('코로 천천히 들이마시고, 입으로 길게 내쉬세요');return;}
