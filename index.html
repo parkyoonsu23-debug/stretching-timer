@@ -267,7 +267,7 @@ svg[hidden]{display:none}
       <button type="button" data-vol="high">크게</button>
     </div>
     <label class="toggle" id="voiceWrap"><input type="checkbox" id="setVoice">음성 안내</label>
-    <label class="toggle"><input type="checkbox" id="setKeep">화면 꺼도 계속 (다른 음악이 멈출 수 있어요)</label>
+    <label class="toggle"><input type="checkbox" id="setKeep">화면 꺼도 계속 · 실험 기능 (켜면 다른 음악이 멈춰요)</label>
     <div class="prep-choice" data-for="strength" role="group" aria-label="운동 기록"><span>운동 기록</span><button type="button" id="logReset">모두 지우기</button></div>
     <div class="prep-choice" data-for="stretch" role="group" aria-label="동작 사이 준비 시간">
       <span>준비 시간</span>
@@ -281,7 +281,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v26</p>
+    <p class="ver">앱 버전 v27</p>
   </section>
 </main>
 
@@ -589,7 +589,9 @@ const store={
   get(k,d){try{const v=localStorage.getItem('stretch-timer:'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
   set(k,v){try{localStorage.setItem('stretch-timer:'+k,JSON.stringify(v));}catch(e){}}
 };
-const settings=Object.assign({sound:true,voice:true,prep:7,vol:'high',len:'normal',keep:true},store.get('settings',{}));
+const settings=Object.assign({sound:true,voice:true,prep:7,vol:'high',len:'normal',keep:false},store.get('settings',{}));
+/* 다른 음악을 멈추게 하던 '화면 꺼도 계속'은 기본 끔. 이전 버전에서 저장된 켜짐 값도 한 번 끈다 */
+if(settings.keepV!==2){settings.keep=false;settings.keepV=2;store.set('settings',settings);}
 if([5,7,10].indexOf(settings.prep)<0)settings.prep=7;
 if(['low','mid','high'].indexOf(settings.vol)<0)settings.vol='high';
 const LEN={short:0.7,normal:1,long:1.3};
@@ -673,9 +675,11 @@ function warmDefault(st,seg,sid){
   const k=seg.setNo-1,f=[.5,.7,.85][k],rr=[8,5,3][k],step=wStep(st.n);
   const wk=R.segs.find(x=>x.type==='set'&&!x.warm),W=logDefault(st,1,wk?wk.setTotal:5,sid).w;
   if(!(W>0))return{w:0,r:rr,hint:'처음이에요. 가벼운 무게로 시작하세요',up:false};
-  let w=Math.round(W*f/step)*step;const bar=step===1?0:20;
-  if(w<bar)w=bar;if(w>=W)w=Math.max(0,W-step);
-  return{w,r:rr,hint:'작업 '+fmtW(W)+'kg의 약 '+Math.round(f*100)+'% · 기록에 섞이지 않아요',up:false};
+  const bar=step===1?0:20,fit=w=>{w=Math.round(w/step)*step;if(w<bar)w=bar;if(w>=W)w=Math.max(0,W-step);return w;};
+  /* 지난번 워밍업을 직접 고쳐 썼다면 그 값을 작업 무게 비율에 맞춰 이어 쓴다 */
+  const prev=lastSession(st.n,sid),pw=prev&&prev.warm&&prev.warm.find(x=>x.n===seg.setNo),Wp=prev?Math.max.apply(null,prev.sets.map(x=>x.w)):0;
+  if(pw&&pw.w>0&&Wp>0)return{w:fit(pw.w*W/Wp),r:pw.r,hint:'지난번 워밍업 기준 · 작업 '+fmtW(W)+'kg',up:false};
+  return{w:fit(W*f),r:rr,hint:'지난번 작업 '+fmtW(W)+'kg의 약 '+Math.round(f*100)+'%',up:false};
 }
 function logRow(st,i,seg,label){
   const d=seg.warm?warmDefault(st,seg,R.sid):logDefault(st,seg.setNo,seg.setTotal,R.sid),step=wStep(st.n);
@@ -787,6 +791,7 @@ function ensureAudio(){
   try{
     if(!ac){
       const AC=window.AudioContext||window.webkitAudioContext;
+      try{if(navigator.audioSession)navigator.audioSession.type='ambient';}catch(e){}   /* 다른 앱 소리와 섞어서 재생 (음악을 멈추지 않음) */
       if(AC){
         ac=new AC();
         const comp=ac.createDynamicsCompressor();
