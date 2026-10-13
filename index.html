@@ -281,7 +281,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v27</p>
+    <p class="ver">앱 버전 v28</p>
   </section>
 </main>
 
@@ -642,7 +642,10 @@ function pnfPattern(T){
   ];
 }
 /* 운동 기록: 상체·하체 A/B 루틴만 (무게·횟수, 마지막 수행일) */
-const LOGGED={upperA:1,upperB:1,lowerA:1,lowerB:1},CYCLE=['upperA','lowerA','upperB','lowerB'];
+const LOGGED={upperA:1,upperB:1,lowerA:1,lowerB:1,fullA:1,fullB:1},FULLRT={fullA:1,fullB:1};
+const CYCLES=[['upperA','lowerA','upperB','lowerB'],['fullA','fullB']];
+/* 기록 이름표: 전신 루틴은 따로 보관해 상체·하체 기록과 섞이지 않게 함 */
+const lk=st=>(R&&R.base&&FULLRT[R.base.id]?'전신 · ':'')+st.n;
 const logOn=rt=>!!(rt&&LOGGED[rt.id]);
 let LOG=store.get('log',{}),DONE=store.get('done',{});
 const wStep=n=>/덤벨|레이즈|플라이|컬/.test(n)?1:2.5;
@@ -654,8 +657,8 @@ function thisSession(name,sid){return(LOG[name]||[]).find(x=>x.t===sid)||null;}
 /* 이번 세트에 미리 채울 값과 안내 문구 */
 function logDefault(st,setNo,setTotal,sid){
   const [lo,hi]=repRange(st.rp),step=wStep(st.n);
-  const cur=thisSession(st.n,sid),done=cur&&cur.sets.find(x=>x.n===setNo);
-  const prev=lastSession(st.n,sid);
+  const cur=thisSession(lk(st),sid),done=cur&&cur.sets.find(x=>x.n===setNo);
+  const prev=lastSession(lk(st),sid);
   let hint='',up=false;
   if(prev&&prev.sets.length){
     hint='지난번 '+prev.sets.map(x=>fmtW(x.w)+'×'+x.r).join(' · ');
@@ -670,14 +673,14 @@ function logDefault(st,setNo,setTotal,sid){
   return{w:same.w,r:same.r,hint,up};
 }
 function warmDefault(st,seg,sid){
-  const e=thisSession(st.n,sid),done=e&&e.warm&&e.warm.find(x=>x.n===seg.setNo);
+  const e=thisSession(lk(st),sid),done=e&&e.warm&&e.warm.find(x=>x.n===seg.setNo);
   if(done)return{w:done.w,r:done.r,hint:'',up:false};
   const k=seg.setNo-1,f=[.5,.7,.85][k],rr=[8,5,3][k],step=wStep(st.n);
   const wk=R.segs.find(x=>x.type==='set'&&!x.warm),W=logDefault(st,1,wk?wk.setTotal:5,sid).w;
   if(!(W>0))return{w:0,r:rr,hint:'처음이에요. 가벼운 무게로 시작하세요',up:false};
   const bar=step===1?0:20,fit=w=>{w=Math.round(w/step)*step;if(w<bar)w=bar;if(w>=W)w=Math.max(0,W-step);return w;};
   /* 지난번 워밍업을 직접 고쳐 썼다면 그 값을 작업 무게 비율에 맞춰 이어 쓴다 */
-  const prev=lastSession(st.n,sid),pw=prev&&prev.warm&&prev.warm.find(x=>x.n===seg.setNo),Wp=prev?Math.max.apply(null,prev.sets.map(x=>x.w)):0;
+  const prev=lastSession(lk(st),sid),pw=prev&&prev.warm&&prev.warm.find(x=>x.n===seg.setNo),Wp=prev?Math.max.apply(null,prev.sets.map(x=>x.w)):0;
   if(pw&&pw.w>0&&Wp>0)return{w:fit(pw.w*W/Wp),r:pw.r,hint:'지난번 워밍업 기준 · 작업 '+fmtW(W)+'kg',up:false};
   return{w:fit(W*f),r:rr,hint:'지난번 작업 '+fmtW(W)+'kg의 약 '+Math.round(f*100)+'%',up:false};
 }
@@ -717,7 +720,7 @@ function commitSet(){
     const w=Math.max(0,parseFloat(String(row.querySelector('.lg-w').value).replace(',','.'))||0);
     const r=Math.max(0,parseInt(row.querySelector('.lg-r').value,10)||0);
     if(!r)return;
-    const a=LOG[st.n]||(LOG[st.n]=[]);
+    const a=LOG[lk(st)]||(LOG[lk(st)]=[]);
     let e=a.find(x=>x.t===R.sid);if(!e){e={t:R.sid,rid:R.base.id,sets:[]};a.push(e);}
     const list=seg.warm?(e.warm||(e.warm=[])):e.sets;   /* 워밍업은 따로 보관해 증량 제안에 섞이지 않게 */
     const k=list.findIndex(x=>x.n===seg.setNo);
@@ -735,9 +738,10 @@ function markDone(rt){
   store.set('done',DONE);
 }
 function weekStart(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime();}
-function nextRid(){
-  let best=0,bi=-1;CYCLE.forEach((id,i)=>{const a=DONE[id];if(a&&a.length&&a[a.length-1]>best){best=a[a.length-1];bi=i;}});
-  return bi<0?null:CYCLE[(bi+1)%CYCLE.length];
+function nextRids(){
+  const out=[];
+  CYCLES.forEach(cy=>{let best=0,bi=-1;cy.forEach((id,i)=>{const a=DONE[id];if(a&&a.length&&a[a.length-1]>best){best=a[a.length-1];bi=i;}});if(bi>=0)out.push(cy[(bi+1)%cy.length]);});
+  return out;
 }
 const SET_MAX=21600;
 const fmtRest=n=>n>=60&&n%60===0?(n/60)+'분':n+'초';
@@ -1011,7 +1015,7 @@ function renderHome(){
       b.querySelector('.rt-count').textContent=cnt+'동작'+(rt.type==='strength'?' · '+setCount(rt)+'세트':'')+(off?' · '+off+'개 뺌':'');
       if(logOn(rt)){
         const arr=DONE[id]||[],last=arr.length?new Date(arr[arr.length-1]):null,wk=arr.filter(t=>t>=weekStart()).length;
-        const isNext=nextRid()===id,line=document.createElement('span');line.className='rt-last';
+        const isNext=nextRids().indexOf(id)>=0,line=document.createElement('span');line.className='rt-last';
         if(isNext){const nb=document.createElement('b');nb.textContent='다음 차례';line.appendChild(nb);b.classList.add('next');}
         if(last)line.appendChild(document.createTextNode('마지막 '+(last.getMonth()+1)+'/'+last.getDate()+' · 이번 주 '+wk+'회'));
         if(isNext||last)b.insertBefore(line,b.querySelector('.rt-count'));
