@@ -194,6 +194,25 @@ svg[hidden]{display:none}
 /* 동작 그림 */
 .t-figure{width:100%;max-width:520px;height:clamp(140px,29vh,300px);margin:10px auto 2px;background:#FBFBFA;border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:6px;cursor:zoom-in}
 .t-figure[hidden]{display:none}
+.lg{width:100%;max-width:380px;margin:6px auto 0;display:grid;gap:8px}
+.lg[hidden]{display:none}
+.lg-row{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:left}
+.lg-top{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.lg-n{font-weight:700;font-size:15px}.lg-n i{font-style:normal;color:var(--k);margin-right:6px}
+.lg-t{font-size:12px;color:var(--muted);white-space:nowrap}
+.lg-ctls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.lg-c{display:flex;align-items:center;justify-content:space-between;background:var(--paper);border-radius:10px;padding:2px}
+.lg-c button{width:38px;height:38px;border:0;border-radius:8px;background:var(--surface);color:var(--ink);font-size:20px;font-weight:700;cursor:pointer;box-shadow:0 0 0 1px var(--line) inset}
+.lg-c label{display:flex;align-items:baseline;gap:2px;font-size:13px;color:var(--muted)}
+.lg-c input{width:52px;border:0;background:transparent;text-align:right;font:700 20px/1 var(--num);color:var(--ink);padding:0;-moz-appearance:textfield}
+.lg-c input::-webkit-outer-spin-button,.lg-c input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.lg-h{margin-top:5px;font-size:12px;color:var(--muted);line-height:1.35}
+.lg-h.up{color:var(--k);font-weight:700}
+#timer.logset .ring{display:none}
+#timer.logset .cue{margin-top:6px}
+.rt-last{margin-top:6px;font-size:12px;color:var(--muted)}
+.rt-last b{color:var(--rail);font-weight:700;margin-right:4px}
+.rt.next{box-shadow:0 0 0 2px var(--rail) inset}
 .t-figs{display:flex;gap:8px;width:100%;max-width:520px;margin:0 auto}
 .t-figs .t-figure{flex:1 1 0;min-width:0;max-width:none;margin:10px 0 2px}
 .pair-list{list-style:none;margin:6px auto 0;padding:0;width:100%;max-width:360px;display:grid;gap:6px}
@@ -247,6 +266,7 @@ svg[hidden]{display:none}
     </div>
     <label class="toggle" id="voiceWrap"><input type="checkbox" id="setVoice">음성 안내</label>
     <label class="toggle"><input type="checkbox" id="setKeep">화면 꺼도 계속 (다른 음악이 멈출 수 있어요)</label>
+    <div class="prep-choice" data-for="strength" role="group" aria-label="운동 기록"><span>운동 기록</span><button type="button" id="logReset">모두 지우기</button></div>
     <div class="prep-choice" data-for="stretch" role="group" aria-label="동작 사이 준비 시간">
       <span>준비 시간</span>
       <button type="button" data-prep="5">5초</button>
@@ -288,6 +308,7 @@ svg[hidden]{display:none}
     <h2 id="tName" aria-live="polite"></h2>
     <p id="tDetail"></p>
     <ul id="tPair" class="pair-list" hidden></ul>
+    <div id="tLog" class="lg" hidden></div>
     <button type="button" id="tRing" class="ring" aria-label="일시정지">
       <svg viewBox="0 0 200 200" aria-hidden="true"><circle class="track" cx="100" cy="100" r="88"/><circle id="tArc" class="arc" cx="100" cy="100" r="88"/></svg>
       <span id="tNum" class="num">0</span>
@@ -615,6 +636,90 @@ function pnfPattern(T){
     {dur:5,pnf:'contract',cycle:3},{dur:r3,pnf:'relax',cycle:3}
   ];
 }
+/* 운동 기록: 상체·하체 A/B 루틴만 (무게·횟수, 마지막 수행일) */
+const LOGGED={upperA:1,upperB:1,lowerA:1,lowerB:1},CYCLE=['upperA','lowerA','upperB','lowerB'];
+const logOn=rt=>!!(rt&&LOGGED[rt.id]);
+let LOG=store.get('log',{}),DONE=store.get('done',{});
+const wStep=n=>/덤벨|레이즈|플라이|컬/.test(n)?1:2.5;
+function repRange(rp){const m=rp.match(/(\d+)\D*~\D*(\d+)/);if(m)return[+m[1],+m[2]];const o=rp.match(/(\d+)/);return o?[+o[1],+o[1]]:[8,8];}
+const fmtW=w=>String(Math.round(w*100)/100);
+function lastSession(name,sid){const a=LOG[name]||[];for(let i=a.length-1;i>=0;i--)if(a[i].t!==sid)return a[i];return null;}
+function thisSession(name,sid){return(LOG[name]||[]).find(x=>x.t===sid)||null;}
+/* 이번 세트에 미리 채울 값과 안내 문구 */
+function logDefault(st,setNo,setTotal,sid){
+  const [lo,hi]=repRange(st.rp),step=wStep(st.n);
+  const cur=thisSession(st.n,sid),done=cur&&cur.sets.find(x=>x.n===setNo);
+  const prev=lastSession(st.n,sid);
+  let hint='',up=false;
+  if(prev&&prev.sets.length){
+    hint='지난번 '+prev.sets.map(x=>fmtW(x.w)+'×'+x.r).join(' · ');
+  }
+  if(done)return{w:done.w,r:done.r,hint,up};
+  if(cur&&cur.sets.length){const l=cur.sets[cur.sets.length-1];return{w:l.w,r:l.r,hint,up};}
+  if(!prev||!prev.sets.length)return{w:0,r:hi,hint:'처음이에요. 무게를 입력하세요',up};
+  const maxW=Math.max.apply(null,prev.sets.map(x=>x.w));
+  if(prev.sets.length>=setTotal&&prev.sets.every(x=>x.r>=hi)&&maxW>0)
+    return{w:maxW+step,r:lo,hint:'지난번 전 세트 '+hi+'회 달성 → +'+fmtW(step)+'kg 올려보기',up:true};
+  const same=prev.sets[Math.min(setNo,prev.sets.length)-1];
+  return{w:same.w,r:same.r,hint,up};
+}
+function logRow(st,i,seg,label){
+  const d=logDefault(st,seg.setNo,seg.setTotal,R.sid),step=wStep(st.n);
+  const row=document.createElement('div');row.className='lg-row';row.dataset.step=i;row.dataset.ws=step;
+  row.innerHTML='<div class="lg-top"><span class="lg-n"></span><span class="lg-t"></span></div>'+
+   '<div class="lg-ctls"><div class="lg-c" data-k="w"><button type="button" data-d="-1" aria-label="무게 줄이기">−</button><label><input class="lg-w" type="text" inputmode="decimal" aria-label="무게(kg)">kg</label><button type="button" data-d="1" aria-label="무게 늘리기">+</button></div>'+
+   '<div class="lg-c" data-k="r"><button type="button" data-d="-1" aria-label="횟수 줄이기">−</button><label><input class="lg-r" type="text" inputmode="numeric" aria-label="횟수">회</label><button type="button" data-d="1" aria-label="횟수 늘리기">+</button></div></div>'+
+   '<div class="lg-h"></div>';
+  const n=row.querySelector('.lg-n');
+  if(label){const b=document.createElement('i');b.textContent=label;n.appendChild(b);n.appendChild(document.createTextNode(st.n));}else n.textContent=st.rp+(st.per?' · '+st.per:'');
+  row.querySelector('.lg-t').textContent=label?st.rp+(st.per?' · '+st.per:''):'목표';
+  row.querySelector('.lg-w').value=fmtW(d.w);row.querySelector('.lg-r').value=d.r;
+  const h=row.querySelector('.lg-h');h.textContent=d.hint;h.classList.toggle('up',d.up);h.hidden=!d.hint;
+  row.querySelectorAll('.lg-c button').forEach(b=>b.addEventListener('click',()=>{
+    const wrap=b.parentNode,inp=wrap.querySelector('input'),dir=+b.dataset.d;
+    if(wrap.dataset.k==='w'){const v=parseFloat(String(inp.value).replace(',','.'))||0;inp.value=fmtW(Math.max(0,v+dir*step));}
+    else{const v=parseInt(inp.value,10)||0;inp.value=Math.max(0,v+dir);}
+  }));
+  row.querySelectorAll('input').forEach(x=>x.addEventListener('focus',()=>{try{x.select();}catch(e){}}));
+  return row;
+}
+function paintLog(seg){
+  const box=$('#tLog'),on=logOn(R.base)&&seg.type==='set';
+  box.hidden=!on;T.classList.toggle('logset',on);
+  if(!on){box.innerHTML='';return;}
+  const st=R.rt.steps[seg.step];box.innerHTML='';
+  if(seg.step2!=null){box.appendChild(logRow(st,seg.step,seg,'A'));box.appendChild(logRow(R.rt.steps[seg.step2],seg.step2,seg,'B'));}
+  else box.appendChild(logRow(st,seg.step,seg,''));
+}
+/* 세트 완료를 누르면 입력값을 저장 */
+function commitSet(){
+  const seg=R.segs[R.idx];if(!logOn(R.base)||!seg||seg.type!=='set')return;
+  document.querySelectorAll('#tLog .lg-row').forEach(row=>{
+    const st=R.rt.steps[+row.dataset.step];
+    const w=Math.max(0,parseFloat(String(row.querySelector('.lg-w').value).replace(',','.'))||0);
+    const r=Math.max(0,parseInt(row.querySelector('.lg-r').value,10)||0);
+    if(!r)return;
+    const a=LOG[st.n]||(LOG[st.n]=[]);
+    let e=a.find(x=>x.t===R.sid);if(!e){e={t:R.sid,rid:R.base.id,sets:[]};a.push(e);}
+    const k=e.sets.findIndex(x=>x.n===seg.setNo);
+    if(k>=0)e.sets[k]={n:seg.setNo,w,r};else e.sets.push({n:seg.setNo,w,r});
+    e.sets.sort((x,y)=>x.n-y.n);
+    if(a.length>40)a.splice(0,a.length-40);
+  });
+  store.set('log',LOG);
+}
+function setDone(){commitSet();goSkip();}
+function markDone(rt){
+  if(!logOn(rt))return;
+  (DONE[rt.id]||(DONE[rt.id]=[])).push(Date.now());
+  if(DONE[rt.id].length>200)DONE[rt.id].splice(0,DONE[rt.id].length-200);
+  store.set('done',DONE);
+}
+function weekStart(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime();}
+function nextRid(){
+  let best=0,bi=-1;CYCLE.forEach((id,i)=>{const a=DONE[id];if(a&&a.length&&a[a.length-1]>best){best=a[a.length-1];bi=i;}});
+  return bi<0?null:CYCLE[(bi+1)%CYCLE.length];
+}
 const SET_MAX=21600;
 const fmtRest=n=>n>=60&&n%60===0?(n/60)+'분':n+'초';
 const segW=s=>s.est!=null?s.est:s.dur;
@@ -778,7 +883,7 @@ function initMediaSession(){
     const set=(a,f)=>{try{navigator.mediaSession.setActionHandler(a,f);}catch(e){}};
     set('play',()=>{if(R&&R.active&&R.paused)togglePause();});
     set('pause',()=>{if(R&&R.active&&!R.paused)togglePause();});
-    set('nexttrack',()=>{if(R&&R.active)goSkip();});
+    set('nexttrack',()=>{if(R&&R.active){if(R.segs[R.idx].type==='set')setDone();else goSkip();}});
     set('previoustrack',()=>{if(R&&R.active)goPrev();});
   }catch(e){}
 }
@@ -841,6 +946,7 @@ function paintTabs(){
   document.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===tab;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});
   $('#legendStretch').hidden=tab!=='stretch';$('#legendStrength').hidden=tab!=='strength';
   document.querySelectorAll('[data-for="stretch"]').forEach(x=>{x.hidden=tab!=='stretch';});
+  document.querySelectorAll('[data-for="strength"]').forEach(x=>{x.hidden=tab!=='strength';});
 }
 function setTab(t){tab=t;store.set('tab',t);paintTabs();renderHome();window.scrollTo(0,0);}
 document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
@@ -878,6 +984,13 @@ function renderHome(){
       b.querySelector('.rt-min b').textContent=mins;
       b.querySelector('.rt-focus').textContent=rt.focus;
       b.querySelector('.rt-count').textContent=cnt+'동작'+(rt.type==='strength'?' · '+setCount(rt)+'세트':'')+(off?' · '+off+'개 뺌':'');
+      if(logOn(rt)){
+        const arr=DONE[id]||[],last=arr.length?new Date(arr[arr.length-1]):null,wk=arr.filter(t=>t>=weekStart()).length;
+        const isNext=nextRid()===id,line=document.createElement('span');line.className='rt-last';
+        if(isNext){const nb=document.createElement('b');nb.textContent='다음 차례';line.appendChild(nb);b.classList.add('next');}
+        if(last)line.appendChild(document.createTextNode('마지막 '+(last.getMonth()+1)+'/'+last.getDate()+' · 이번 주 '+wk+'회'));
+        if(isNext||last)b.insertBefore(line,b.querySelector('.rt-count'));
+      }
       b.addEventListener('click',()=>openPreview(rt));
       pair.appendChild(b);
     });
@@ -998,7 +1111,8 @@ function paintSegment(){
   $('#tState').textContent=stateLabel(seg,st);
   const pair=seg.step2!=null&&(seg.type==='set'||seg.type==='rest'),st2=pair?R.rt.steps[seg.step2]:null;
   T.classList.toggle('pair',pair);
-  $('#tName').hidden=pair;$('#tDetail').hidden=pair;$('#tPair').hidden=!pair;
+  const lg=logOn(R.base)&&seg.type==='set';
+  $('#tName').hidden=pair;$('#tDetail').hidden=pair;$('#tPair').hidden=!pair||lg;
   $('#tName').textContent=st.n;
   const src=imgFor(R.rt,seg.step),fig=$('#tFigure'),im=$('#tImg');
   if(src){if(im.getAttribute('src')!==src)im.src=src;im.alt=st.n;fig.hidden=false;}else fig.hidden=true;
@@ -1028,6 +1142,7 @@ function paintSegment(){
     Array.prototype.forEach.call(dots.children,(d,i)=>d.classList.toggle('on',i<seg.cycle));
   }else dots.hidden=true;
   $('#tNext').textContent=nextText();
+  paintLog(seg);
   const sd=$('#tSetDone');sd.hidden=seg.type!=='set';sd.textContent=seg.last?'마지막 세트 완료':'세트 완료';
 }
 function cueVoice(seg,st){
@@ -1047,7 +1162,7 @@ function cueVoice(seg,st){
 function persist(){
   if(!R||!R.active)return;
   const w=Date.now(),p=performance.now();
-  store.set('run',{rid:R.base.id,idx:R.idx,segStart:w-(p-R.segStart),started:w-(p-R.startedAt),pausedTotal:R.pausedTotal||0,
+  store.set('run',{rid:R.base.id,sid:R.sid,idx:R.idx,segStart:w-(p-R.segStart),started:w-(p-R.startedAt),pausedTotal:R.pausedTotal||0,
     paused:!!R.paused,pauseRemain:R.paused?R.pauseRemain:0,savedAt:w});
 }
 function clearRun(){try{localStorage.removeItem('stretch-timer:run');}catch(e){}}
@@ -1160,7 +1275,7 @@ function startRoutine(rt,fromStep,replace,restore){
   unbook();
   const cum=[];let acc=0;
   segs.forEach((s,i)=>{cum[i]=acc;acc+=segW(s);});
-  R={rt:v,base:rt,segs,cum,total:acc,idx:0,active:true,paused:false,pausedTotal:0};
+  R={rt:v,base:rt,segs,cum,total:acc,idx:0,active:true,paused:false,pausedTotal:0,sid:(restore&&restore.sid)||Date.now()};
   const mark=v.type==='strength'?'set':'prep';
   R.order=[];segs.forEach(s=>{if(s.type===mark&&R.order.indexOf(s.step)<0)R.order.push(s.step);});
   let si=segs.findIndex(s=>s.type===mark&&(s.step>=(fromStep||0)||(s.step2!=null&&s.step2>=(fromStep||0))));if(si<0)si=0;
@@ -1188,7 +1303,7 @@ function startRoutine(rt,fromStep,replace,restore){
 function finish(natural){
   const now=performance.now();
   R.active=false;cancelAnimationFrame(R.raf);clearInterval(R.iv);releaseLock();
-  keepAlive(false);clearRun();
+  keepAlive(false);clearRun();markDone(R.base);
   if(natural)letRing();else{unbook();chime();}
   $('#zoom').hidden=true;
   const secs=Math.max(0,Math.round((now-R.startedAt-R.pausedTotal)/1000));
@@ -1215,7 +1330,7 @@ $('#tRing').addEventListener('click',togglePause);
 $('#tPlay').addEventListener('click',togglePause);
 $('#tPrev').addEventListener('click',goPrev);
 $('#tSkip').addEventListener('click',goSkip);
-$('#tSetDone').addEventListener('click',goSkip);
+$('#tSetDone').addEventListener('click',setDone);
 function openConfirm(){
   if(!R||!R.active||!$('#tConfirm').hidden)return;
   R.wasPaused=R.paused;
@@ -1254,6 +1369,13 @@ window.addEventListener('pagehide',persist);
 /* 설정 */
 const sSound=$('#setSound'),sVoice=$('#setVoice');
 sSound.checked=settings.sound;sVoice.checked=settings.voice;
+let resetT=0;
+$('#logReset').addEventListener('click',e=>{
+  const b=e.currentTarget;
+  if(!resetT){b.textContent='한 번 더 누르면 삭제';resetT=setTimeout(()=>{resetT=0;b.textContent='모두 지우기';},4000);return;}
+  clearTimeout(resetT);resetT=0;LOG={};DONE={};store.set('log',LOG);store.set('done',DONE);b.textContent='지웠어요';
+  setTimeout(()=>{b.textContent='모두 지우기';},1500);renderHome();
+});
 const sKeep=$('#setKeep');sKeep.checked=settings.keep;
 sKeep.addEventListener('change',()=>{settings.keep=sKeep.checked;saveSettings();if(R&&R.active&&!R.paused)keepMedia(true);if(!sKeep.checked&&keepEl)keepEl.pause();});
 if(!canSpeak)$('#voiceWrap').hidden=true;
