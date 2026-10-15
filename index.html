@@ -281,7 +281,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v28</p>
+    <p class="ver">앱 버전 v29</p>
   </section>
 </main>
 
@@ -1115,10 +1115,24 @@ function stateLabel(seg,st){
   return '늘린 채 유지';
 }
 const pairName=seg=>R.rt.steps[seg.step].n+(seg.step2!=null?' + '+R.rt.steps[seg.step2].n:'');
+/* 다음 세트의 무게·횟수 미리 보기 (세트 화면에서는 지금 입력한 값을 이어 받는 경우까지 반영) */
+function planText(seg,live){
+  if(!logOn(R.base)||!seg)return '';
+  const cur=R.segs[R.idx],ids=[seg.step].concat(seg.step2!=null?[seg.step2]:[]);
+  return ids.map((i,k)=>{
+    const st=R.rt.steps[i];let d=null;
+    if(live&&cur.type==='set'&&!cur.warm&&!seg.warm&&(cur.step===i||cur.step2===i)){
+      const row=document.querySelector('#tLog .lg-row[data-step="'+i+'"]');
+      if(row)d={w:parseFloat(String(row.querySelector('.lg-w').value).replace(',','.'))||0,r:parseInt(row.querySelector('.lg-r').value,10)||0};
+    }
+    if(!d)d=seg.warm?warmDefault(st,seg,R.sid):logDefault(st,seg.setNo,seg.setTotal,R.sid);
+    return(ids.length>1?'AB'[k]+' ':'')+(d.w>0?fmtW(d.w)+'kg × ':'')+d.r+'회';
+  }).join(' · ');
+}
 function nextText(){
   if(R.rt.type==='strength'){
     if(R.segs[R.idx].type==='rest')return '휴식이 끝나면 바로 시작';
-    for(let j=R.idx+1;j<R.segs.length;j++){const s=R.segs[j];if(s.type==='set')return '다음: '+pairName(s)+' '+setLbl(s);}
+    for(let j=R.idx+1;j<R.segs.length;j++){const s=R.segs[j];if(s.type==='set'){const pt=planText(s,true);return '다음: '+pairName(s)+' '+setLbl(s)+(pt?' · '+pt:'');}}
     return '마지막 세트';
   }
   for(let j=R.idx+1;j<R.segs.length;j++){
@@ -1154,7 +1168,7 @@ function paintSegment(){
   $('#tDetail').textContent=seg.warm?'워밍업 3세트 후 본 세트: '+st.d:st.d;
   let under='',cue='';
   if(seg.type==='set'){under=pair?'연달아':(st.per||'목표 횟수');cue=seg.hint;}
-  else if(seg.type==='rest'){under='쉬는 시간';cue=seg.warm?'워밍업 '+seg.setNo+'세트째 · 가볍게':pair?seg.setNo+'세트째 · A, B 순서':seg.setNo+'세트째 · '+st.rp+(st.per?' '+st.per:'');}
+  else if(seg.type==='rest'){under='쉬는 시간';const pt=planText(R.segs[R.idx+1],false);cue=pt?(seg.warm?'다음 워밍업 '+seg.setNo+'세트 · ':'다음 '+seg.setNo+'세트 · ')+pt:seg.warm?'워밍업 '+seg.setNo+'세트째 · 가볍게':pair?seg.setNo+'세트째 · A, B 순서':seg.setNo+'세트째 · '+st.rp+(st.per?' '+st.per:'');}
   else if(seg.type==='prep'){under='다음 동작';if(st.pnf)cue='힘줄 때: '+st.cue;else if(st.tip)cue=st.tip;}
   else if(seg.type==='switch'){under='자세 바꾸기';}
   else if(seg.pnf==='stretch'){cue='편안하게 늘린 자세 잡기';}
@@ -1171,7 +1185,7 @@ function paintSegment(){
     Array.prototype.forEach.call(dots.children,(d,i)=>d.classList.toggle('on',i<seg.cycle));
   }else dots.hidden=true;
   $('#tNext').textContent=nextText();
-  paintLog(seg);
+  paintLog(seg);$('#tNext').textContent=nextText();
   const sd=$('#tSetDone');sd.hidden=seg.type!=='set';sd.textContent=seg.last?'마지막 세트 완료':'세트 완료';
 }
 function cueVoice(seg,st){
@@ -1399,6 +1413,8 @@ window.addEventListener('pagehide',persist);
 /* 설정 */
 const sSound=$('#setSound'),sVoice=$('#setVoice');
 sSound.checked=settings.sound;sVoice.checked=settings.voice;
+$('#tLog').addEventListener('input',()=>{$('#tNext').textContent=nextText();});
+$('#tLog').addEventListener('click',e=>{if(e.target.closest('button'))$('#tNext').textContent=nextText();});
 let resetT=0;
 $('#logReset').addEventListener('click',e=>{
   const b=e.currentTarget;
