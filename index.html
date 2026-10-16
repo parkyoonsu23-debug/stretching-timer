@@ -63,7 +63,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .legend li{display:flex;align-items:center;gap:6px}
 .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
 .sw.move{background:var(--move)}.sw.stretch{background:var(--stretch)}.sw.contract{background:var(--contract)}
-.group{margin:0 0 22px}
 .group h2{font:600 15px/1.3 var(--ui);color:var(--muted);margin:0 0 8px}
 .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pair .rt:only-child{grid-column:1/-1}
@@ -77,7 +76,20 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .rt-min span{font-size:14px;font-weight:600}
 .rt-focus{font-size:13px;line-height:1.45;color:var(--muted)}
 .rt-count{margin-top:auto;padding-top:8px;font-size:12px;color:var(--muted)}
-.settings{margin-top:28px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center;font-size:14px}
+.pair.rows{grid-template-columns:1fr;gap:8px}
+.rt.row{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:12px;align-items:center;min-height:0;padding:11px 14px 11px 17px}
+.rt.row .rt-label{grid-column:1;grid-row:1}
+.rt.row .rt-count{grid-column:1;grid-row:2;margin:0;padding:2px 0 0}
+.rt.row .rt-min{grid-column:2;grid-row:1/3;margin:0}
+.rt.row .rt-min b{font-size:28px}
+.rt.row::before{top:10px;bottom:10px}
+.group{margin:0 0 18px}
+.settings{margin-top:20px;padding-top:12px;border-top:1px solid var(--line);font-size:14px}
+.settings summary{cursor:pointer;color:var(--muted);font-weight:600;padding:6px 0;list-style:none}
+.settings summary::-webkit-details-marker{display:none}
+.settings summary::after{content:" ▾";font-size:12px}
+.settings[open] summary::after{content:" ▴"}
+.settings-body{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center;margin-top:10px}
 .toggle{display:flex;align-items:center;gap:8px;cursor:pointer}
 .toggle input{appearance:none;-webkit-appearance:none;width:38px;height:22px;border-radius:11px;background:var(--line);position:relative;margin:0;cursor:pointer;transition:background .2s}
 .toggle input::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--surface);transition:transform .2s}
@@ -258,7 +270,7 @@ svg[hidden]{display:none}
   </ul>
   <p class="legend" id="legendStrength" hidden>세트를 마치면 '세트 완료'를 누르세요. 쉬는 시간은 자동으로 재요.</p>
   <div id="groups"></div>
-  <section class="settings" aria-label="설정">
+  <details class="settings"><summary>설정</summary><div class="settings-body">
     <label class="toggle"><input type="checkbox" id="setSound">소리</label>
     <div class="prep-choice" role="group" aria-label="소리 크기">
       <span>소리 크기</span>
@@ -281,8 +293,8 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v30</p>
-  </section>
+    <p class="ver">앱 버전 v31</p>
+  </div></details>
 </main>
 
 <section id="preview" class="screen" hidden>
@@ -566,13 +578,11 @@ const ROUTINES=[
 ]}
 ];
 const GROUPS=[
- {tab:'stretch',name:'매일',ids:['morning','night']},
- {tab:'stretch',name:'업무 중',ids:['office']},
- {tab:'stretch',name:'러닝',ids:['runPre','runPost']},
- {tab:'stretch',name:'하체 근력',ids:['lowerPre','lowerPost']},
- {tab:'stretch',name:'상체 근력',ids:['upperPre','upperPost']},
- {tab:'stretch',name:'전신 근력',ids:['fullPre','fullPost']},
- {tab:'stretch',name:'운동 후 + 자기 전',ids:['upperPN','lowerPN','fullPN','runPN']},
+ {tab:'stretch',name:'일상',ids:['morning','night','office']},
+ {tab:'stretch',name:'러닝',ids:['runPre','runPost','runPN']},
+ {tab:'stretch',name:'하체 근력',ids:['lowerPre','lowerPost','lowerPN']},
+ {tab:'stretch',name:'상체 근력',ids:['upperPre','upperPost','upperPN']},
+ {tab:'stretch',name:'전신 근력',ids:['fullPre','fullPost','fullPN']},
  {tab:'strength',name:'상체 근력',ids:['upperA','upperB']},
  {tab:'strength',name:'하체 근력',ids:['lowerA','lowerB']},
  {tab:'strength',name:'전신 근력',ids:['fullA','fullB']}
@@ -580,13 +590,13 @@ const GROUPS=[
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
 /* 운동 후 + 자기 전 통합 루틴: 기존 동작을 골라 이어 붙임. 앞쪽은 그날 쓴 부위, 뒤쪽은 누워서 이완 (그림도 그대로 재사용) */
 const COMBOS=[
- {id:'upperPN',cell:'상체 후 + 취침',title:'상체 근력 후 + 자기 전 스트레칭',focus:'가슴·광배·어깨를 풀고 바로 이어서 누워 이완',
+ {id:'upperPN',cell:'운동 후 + 취침',title:'상체 근력 후 + 자기 전 스트레칭',focus:'가슴·광배·어깨를 풀고 바로 이어서 누워 이완',
   refs:[['upperPost',0],['upperPost',3],['upperPost',4],['upperPost',5],['upperPost',7],['upperPost',8],['night',5],['night',8],['night',9],['night',10]]},
- {id:'lowerPN',cell:'하체 후 + 취침',title:'하체 근력 후 + 자기 전 스트레칭',focus:'종아리·햄스트링·고관절을 풀고 바로 이어서 누워 이완',
+ {id:'lowerPN',cell:'운동 후 + 취침',title:'하체 근력 후 + 자기 전 스트레칭',focus:'종아리·햄스트링·고관절을 풀고 바로 이어서 누워 이완',
   refs:[['lowerPost',0],['lowerPost',1],['lowerPost',2],['lowerPost',3],['lowerPost',4],['night',8],['night',9],['night',10]]},
- {id:'fullPN',cell:'전신 후 + 취침',title:'전신 근력 후 + 자기 전 스트레칭',focus:'상체·하체 핵심 부위를 풀고 바로 이어서 누워 이완',
+ {id:'fullPN',cell:'운동 후 + 취침',title:'전신 근력 후 + 자기 전 스트레칭',focus:'상체·하체 핵심 부위를 풀고 바로 이어서 누워 이완',
   refs:[['fullPost',0],['fullPost',1],['fullPost',4],['fullPost',5],['fullPost',6],['fullPost',7],['night',8],['night',9],['night',10]]},
- {id:'runPN',cell:'러닝 후 + 취침',title:'러닝 후 + 자기 전 스트레칭',focus:'종아리·허벅지·햄스트링·둔근을 풀고 바로 이어서 누워 이완',
+ {id:'runPN',cell:'운동 후 + 취침',title:'러닝 후 + 자기 전 스트레칭',focus:'종아리·허벅지·햄스트링·둔근을 풀고 바로 이어서 누워 이완',
   refs:[['runPost',0],['runPost',2],['runPost',3],['runPost',5],['night',5],['night',8],['night',9],['night',10]]}
 ];
 COMBOS.forEach(c=>{const rt={id:c.id,cell:c.cell,title:c.title,mode:'static',focus:c.focus,steps:c.refs.map(([r,i])=>byId[r].steps[i])};ROUTINES.push(rt);byId[rt.id]=rt;});
@@ -1022,10 +1032,12 @@ function renderHome(){
       const rt=byId[id],mins=Math.round(totalSec(view(rt))/60),cnt=shownSteps(rt).length,off=rt.steps.length-cnt;
       const b=document.createElement('button');b.type='button';b.className='rt '+rt.mode;
       b.setAttribute('aria-label',rt.title+', '+mins+'분, '+cnt+'동작');
-      b.innerHTML='<span class="rt-label"></span><span class="rt-min"><b></b><span>분</span></span><span class="rt-focus"></span><span class="rt-count"></span>';
+      const row=rt.type!=='strength';
+      if(row)b.classList.add('row');
+      b.innerHTML=row?'<span class="rt-label"></span><span class="rt-count"></span><span class="rt-min"><b></b><span>분</span></span>':'<span class="rt-label"></span><span class="rt-min"><b></b><span>분</span></span><span class="rt-focus"></span><span class="rt-count"></span>';
       b.querySelector('.rt-label').textContent=rt.cell;
       b.querySelector('.rt-min b').textContent=mins;
-      b.querySelector('.rt-focus').textContent=rt.focus;
+      if(!row)b.querySelector('.rt-focus').textContent=rt.focus;
       b.querySelector('.rt-count').textContent=cnt+'동작'+(rt.type==='strength'?' · '+setCount(rt)+'세트':'')+(off?' · '+off+'개 뺌':'');
       if(logOn(rt)){
         const arr=DONE[id]||[],last=arr.length?new Date(arr[arr.length-1]):null,wk=arr.filter(t=>t>=weekStart()).length;
@@ -1036,6 +1048,7 @@ function renderHome(){
       }
       b.addEventListener('click',()=>openPreview(rt));
       pair.appendChild(b);
+      if(row)pair.classList.add('rows');
     });
     sec.appendChild(pair);wrap.appendChild(sec);
   });
