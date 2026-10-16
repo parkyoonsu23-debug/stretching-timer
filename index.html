@@ -293,7 +293,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v31</p>
+    <p class="ver">앱 버전 v32</p>
   </div></details>
 </main>
 
@@ -1346,7 +1346,7 @@ function startRoutine(rt,fromStep,replace,restore){
   unbook();
   const cum=[];let acc=0;
   segs.forEach((s,i)=>{cum[i]=acc;acc+=segW(s);});
-  R={rt:v,base:rt,segs,cum,total:acc,idx:0,active:true,paused:false,pausedTotal:0,sid:(restore&&restore.sid)||Date.now()};
+  R={rt:v,base:rt,segs,cum,total:acc,idx:0,active:true,paused:false,pausedTotal:0,back:(restore&&!replace)?-1:-2,sid:(restore&&restore.sid)||Date.now()};
   const mark=v.type==='strength'?'set':'prep';
   R.order=[];segs.forEach(s=>{if(s.type===mark&&R.order.indexOf(s.step)<0)R.order.push(s.step);});
   let si=segs.findIndex(s=>s.type===mark&&(s.step>=(fromStep||0)||(s.step2!=null&&s.step2>=(fromStep||0))));if(si<0)si=0;
@@ -1423,7 +1423,7 @@ let zoomClosing=false;
 function closeZoom(){if($('#zoom').hidden)return;$('#zoom').hidden=true;zoomClosing=true;history.back();}
 $('#zoom').addEventListener('click',closeZoom);
 $('#dAgain').addEventListener('click',()=>startRoutine(R.base,0,true));
-$('#dHome').addEventListener('click',()=>history.go(-2));
+$('#dHome').addEventListener('click',()=>history.go(R&&R.back||-2));
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&!$('#zoom').hidden){closeZoom();return;}
   if(!R||!R.active||T.hidden)return;

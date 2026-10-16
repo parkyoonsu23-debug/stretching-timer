@@ -1,6 +1,6 @@
 // 스트레칭 타이머 오프라인 작동 파일
 // 수정본을 올릴 때 VERSION 숫자를 올리면 휴대폰의 앱이 새 파일로 바뀝니다.
-const VERSION = 'v31';
+const VERSION = 'v32';
 const APP_CACHE = 'stretch-timer-app-' + VERSION;
 const FONT_CACHE = 'stretch-timer-fonts';
 const APP_FILES = [
@@ -40,14 +40,19 @@ self.addEventListener('fetch', e => {
 
   if (url.origin !== self.location.origin) return;
 
-  // 앱 화면: 인터넷이 되면 최신 파일, 안 되면 저장된 파일
+  // 앱 화면: 인터넷이 되면 최신 파일, 3초 안에 응답이 없거나 안 되면 저장된 파일
   if (req.mode === 'navigate') {
-    e.respondWith(
-      fetch(req, { cache: 'no-cache' }).then(r => {
-        if (r.ok) { const copy = r.clone(); caches.open(APP_CACHE).then(c => c.put('./index.html', copy)); }
+    e.respondWith((async () => {
+      const cache = await caches.open(APP_CACHE);
+      const net = fetch(req, { cache: 'no-cache' }).then(r => {
+        if (r.ok) cache.put('./index.html', r.clone());
         return r;
-      }).catch(() => caches.match('./index.html'))
-    );
+      });
+      e.waitUntil(net.catch(() => {}));
+      const hit = await cache.match('./index.html');
+      if (!hit) return net;
+      return Promise.race([net.catch(() => hit), new Promise(res => setTimeout(() => res(hit), 3000))]);
+    })());
     return;
   }
 
