@@ -293,7 +293,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v32</p>
+    <p class="ver">앱 버전 v33</p>
   </div></details>
 </main>
 
@@ -356,7 +356,7 @@ svg[hidden]{display:none}
 
 <div id="zoom" class="zoom" hidden><img id="zoomImg" alt=""></div>
 
-<script src="images.js?v=20"></script>
+<script src="images.js?v=21"></script>
 <script>
 (function(){
 'use strict';
@@ -541,40 +541,42 @@ const ROUTINES=[
  {i:[0],sets:5,rest:120},{i:[1],sets:3,rest:90},{i:[2],sets:4,rest:90},
  {i:[3,4],sets:4,rest:60},{i:[5,6],sets:4,rest:45},{i:[7,8],sets:4,rest:60}
 ]},
-{id:'fullB',cell:'전신 근력 B',title:'전신 근력 B',mode:'strength',focus:'데드리프트·하체·상체를 한 번에, 24세트. 짝지은 동작은 쉬지 않고 이어서',type:'strength',steps:[
+{id:'fullB',cell:'전신 근력 B',title:'전신 근력 B',mode:'strength',focus:'데드리프트·하체·상체를 한 번에 + 둔근 보강, 24세트. 짝지은 동작은 쉬지 않고 이어서',type:'strength',steps:[
  {n:'데드리프트',d:'4세트 × 3~4회',rp:'3~4회',est:40},
  {n:'덤벨 오버헤드프레스',d:'4세트 × 5회 · 정강이 컬과 이어서',rp:'5회',est:30},
  {n:'정강이 컬',d:'4세트 × 15~20회',rp:'15~20회',est:45},
- {n:'힙 쓰러스트',d:'3세트 × 6~8회',rp:'6~8회',est:40},
- {n:'불가리안 스플릿 스쿼트',d:'4세트 × 6~8회',rp:'6~8회',est:60},
- {n:'인클라인 덤벨 프레스',d:'2세트 × 6~8회 · 사이드 레터럴과 이어서',rp:'6~8회',est:40},
- {n:'덤벨 사이드 레터럴',d:'2세트 × 12~15회',rp:'12~15회',est:45},
- {n:'랫풀다운 (클로즈 그립)',d:'3세트 × 5~6회 · 케이블 푸시다운과 이어서',rp:'5~6회',est:35},
- {n:'케이블 푸시다운',d:'3세트 × 10~12회',rp:'10~12회',est:40},
+ {n:'힙 쓰러스트',d:'4세트 × 8~12회',rp:'8~12회',est:40},
+ {n:'불가리안 스플릿 스쿼트',d:'3세트 × 6~8회',rp:'6~8회',est:60},
+ {n:'인클라인 덤벨 프레스',d:'3세트 × 6~8회 · 사이드 레터럴과 이어서',rp:'6~8회',est:40},
+ {n:'덤벨 사이드 레터럴',d:'3세트 × 12~15회',rp:'12~15회',est:45},
+ {n:'랫풀다운 (클로즈 그립)',d:'2세트 × 5~6회 · 케이블 푸시다운과 이어서',rp:'5~6회',est:35},
+ {n:'케이블 푸시다운',d:'2세트 × 10~12회',rp:'10~12회',est:40},
  {n:'케이블 크런치',d:'2세트 × 12~15회 · 페이스풀과 이어서',rp:'12~15회',est:45},
  {n:'페이스풀',d:'2세트 × 12~15회',rp:'12~15회',est:45},
  {n:'팔로프 프레스',d:'2세트 × 좌우 10~12회 · 원암 스탠딩 로우와 이어서',rp:'10~12회',per:'좌우 각각',est:60},
  {n:'케이블 원암 스탠딩 로우',d:'2세트 × 좌우 10~12회',rp:'10~12회',per:'좌우 각각',est:60}
 ],blocks:[
- {i:[0],sets:4,rest:120},{i:[1,2],sets:4,rest:90},{i:[3],sets:3,rest:90},{i:[4],sets:4,rest:90},
- {i:[5,6],sets:2,rest:60},{i:[7,8],sets:3,rest:60},{i:[9,10],sets:2,rest:45},{i:[11,12],sets:2,rest:45}
+ {i:[0],sets:4,rest:120},{i:[1,2],sets:4,rest:90},{i:[3],sets:4,rest:90},{i:[4],sets:3,rest:90},
+ {i:[5,6],sets:3,rest:60},{i:[7,8],sets:2,rest:60},{i:[9,10],sets:2,rest:45},{i:[11,12],sets:2,rest:45}
 ]},
-{id:'fullA',cell:'전신 근력 A',title:'전신 근력 A',mode:'strength',focus:'하체·가슴·등을 한 번에, 24세트. 짝지은 동작은 쉬지 않고 이어서',type:'strength',steps:[
- {n:'백스쿼트',d:'5세트 × 4~5회',rp:'4~5회',est:45},
+{id:'fullA',cell:'전신 근력 A',title:'전신 근력 A',mode:'strength',focus:'하체·가슴·등에 어깨 폭 보강, 24세트. 짝지은 동작은 쉬지 않고 이어서',type:'strength',steps:[
+ {n:'백스쿼트',d:'4세트 × 4~5회',rp:'4~5회',est:45},
  {n:'루마니안 데드리프트',d:'3세트 × 6~8회',rp:'6~8회',est:40},
- {n:'벤치프레스',d:'4세트 × 4~5회 · 정강이 컬과 이어서',rp:'4~5회',est:35},
- {n:'정강이 컬',d:'4세트 × 15~20회',rp:'15~20회',est:45},
+ {n:'벤치프레스',d:'3세트 × 4~5회 · 정강이 컬과 이어서',rp:'4~5회',est:35},
+ {n:'정강이 컬',d:'3세트 × 15~20회',rp:'15~20회',est:45},
  {n:'케이블 로우',d:'3세트 × 6~8회 · 한다리 카프 레이즈와 이어서',rp:'6~8회',est:40},
  {n:'한다리 카프 레이즈',d:'3세트 × 8~12회',rp:'8~12회',per:'한 다리씩',est:50},
  {n:'덤벨 오버헤드프레스',d:'3세트 × 5회 · 리버스 런지와 이어서',rp:'5회',est:30},
  {n:'리버스 런지',d:'3세트 × 8~10회',rp:'8~10회',est:50},
+ {n:'덤벨 사이드 레터럴',d:'2세트 × 12~15회 · 리어 델트 플라이와 이어서',rp:'12~15회',est:45},
+ {n:'덤벨 리어 델트 플라이',d:'2세트 × 12~15회',rp:'12~15회',est:45},
  {n:'랫풀다운 (와이드 그립)',d:'3세트 × 5~6회 · 케이블 크런치와 이어서',rp:'5~6회',est:35},
  {n:'케이블 크런치',d:'3세트 × 12~15회',rp:'12~15회',est:45},
  {n:'케이블 스탠딩 레그 컬',d:'3세트 × 좌우 10~12회 · 힙 어브덕션과 이어서',rp:'10~12회',per:'좌우 각각',est:60},
  {n:'케이블 힙 어브덕션',d:'3세트 × 좌우 12~15회 · 로우 풀리, 앵클 스트랩',rp:'12~15회',per:'좌우 각각',est:60}
 ],blocks:[
- {i:[0],sets:5,rest:120},{i:[1],sets:3,rest:90},{i:[2,3],sets:4,rest:90},
- {i:[4,5],sets:3,rest:60},{i:[6,7],sets:3,rest:60},{i:[8,9],sets:3,rest:60},{i:[10,11],sets:3,rest:45}
+ {i:[0],sets:4,rest:120},{i:[1],sets:3,rest:90},{i:[2,3],sets:3,rest:90},
+ {i:[4,5],sets:3,rest:60},{i:[6,7],sets:3,rest:60},{i:[8,9],sets:2,rest:60},{i:[10,11],sets:3,rest:60},{i:[12,13],sets:3,rest:45}
 ]}
 ];
 const GROUPS=[
@@ -600,7 +602,7 @@ const COMBOS=[
   refs:[['runPost',0],['runPost',2],['runPost',3],['runPost',5],['night',5],['night',8],['night',9],['night',10]]}
 ];
 COMBOS.forEach(c=>{const rt={id:c.id,cell:c.cell,title:c.title,mode:'static',focus:c.focus,steps:c.refs.map(([r,i])=>byId[r].steps[i])};ROUTINES.push(rt);byId[rt.id]=rt;});
-const IMG_VERSION='20';
+const IMG_VERSION='21';
 const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
 COMBOS.forEach(c=>{const a=c.refs.map(([r,i])=>(IMGS[r]&&IMGS[r][i])||'');if(a.every(Boolean))IMGS[c.id]=a;});
 const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
