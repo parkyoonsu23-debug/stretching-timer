@@ -293,7 +293,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v33</p>
+    <p class="ver">앱 버전 v34</p>
   </div></details>
 </main>
 
@@ -670,10 +670,21 @@ function pnfPattern(T){
 /* 운동 기록: 상체·하체 A/B 루틴만 (무게·횟수, 마지막 수행일) */
 const LOGGED={upperA:1,upperB:1,lowerA:1,lowerB:1,fullA:1,fullB:1},FULLRT={fullA:1,fullB:1};
 const CYCLES=[['upperA','lowerA','upperB','lowerB'],['fullA','fullB']];
-/* 기록 이름표: 전신 루틴은 따로 보관해 상체·하체 기록과 섞이지 않게 함 */
-const lk=st=>(R&&R.base&&FULLRT[R.base.id]?'전신 · ':'')+st.n;
+/* 기록 이름표: 루틴별로 따로 보관 (같은 이름 동작도 루틴마다 기록이 따로 쌓임) */
+const lk=st=>(R&&R.base?R.base.id:'')+'·'+st.n;
 const logOn=rt=>!!(rt&&LOGGED[rt.id]);
 let LOG=store.get('log',{}),DONE=store.get('done',{});
+/* 이전 버전 기록(동작 이름 기준)을 루틴별 이름표로 옮김. 각 기록에 저장된 루틴 정보를 따라 나눔 */
+(function(){
+  if(store.get('logV',1)>=2||!LOG||typeof LOG!=='object')return;
+  const N={};
+  Object.keys(LOG).forEach(k=>{
+    const nm=k.replace(/^전신 · /,'');
+    (Array.isArray(LOG[k])?LOG[k]:[]).forEach(e=>{if(!e||!e.rid)return;const nk=e.rid+'·'+nm;(N[nk]||(N[nk]=[])).push(e);});
+  });
+  Object.keys(N).forEach(k=>{N[k].sort((a,b)=>a.t-b.t);if(N[k].length>40)N[k].splice(0,N[k].length-40);});
+  LOG=N;store.set('log',LOG);store.set('logV',2);
+})();
 const wStep=n=>/덤벨|레이즈|플라이|컬/.test(n)?1:2.5;
 function repRange(rp){const m=rp.match(/(\d+)\D*~\D*(\d+)/);if(m)return[+m[1],+m[2]];const o=rp.match(/(\d+)/);return o?[+o[1],+o[1]]:[8,8];}
 const fmtW=w=>String(Math.round(w*100)/100);
