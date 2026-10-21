@@ -148,10 +148,30 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 #timer[data-kind="set"]{--k:var(--contract);--k-soft:var(--contract-soft);--wd:100}
 #timer[data-kind="breath"][data-breath="in"]{--wd:142}
 #timer[data-kind="breath"][data-breath="out"]{--wd:70}
-.t-top{display:grid;grid-template-columns:40px 1fr 48px;align-items:center;gap:8px}
+.t-top{display:grid;grid-template-columns:40px 1fr auto;align-items:center;gap:8px}
 .icon-btn{width:40px;height:40px;border-radius:50%;border:0;background:var(--prep-soft);display:grid;place-items:center;cursor:pointer;color:var(--ink)}
 #tTitle{font-size:14px;color:var(--muted);text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.t-step{font-family:var(--num);font-weight:600;font-size:15px;font-variation-settings:"wdth" 100,"wght" 600;color:var(--muted);text-align:right}
+.t-step span{font-family:var(--num);font-weight:600;font-size:15px;font-variation-settings:"wdth" 100,"wght" 600}
+.t-step{border:0;background:var(--prep-soft);border-radius:999px;padding:7px 12px;display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--ink)}
+.t-step svg{flex:none}
+.sheet{position:fixed;inset:0;z-index:15;display:flex;align-items:flex-end;background:rgba(10,14,13,.5)}
+.sheet[hidden]{display:none}
+.sheet-panel{width:100%;max-width:560px;margin:0 auto;max-height:80vh;display:flex;flex-direction:column;background:var(--surface);border-radius:18px 18px 0 0;padding:14px 18px calc(14px + env(safe-area-inset-bottom,0px))}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.sheet-head b{font-size:16px}
+.sl{list-style:none;margin:0;padding:0;overflow:auto;-webkit-overflow-scrolling:touch}
+.sl li{border-bottom:1px solid var(--line)}
+.sl li:last-child{border-bottom:0}
+.sl button{width:100%;display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center;text-align:left;border:0;background:none;color:var(--ink);padding:11px 4px;cursor:pointer;font:inherit}
+.sl .no{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:700;background:var(--prep-soft);color:var(--muted)}
+.sl .nm{display:block;font-weight:600;font-size:15px;line-height:1.35}
+.sl .dt{display:block;font-size:13px;color:var(--muted);line-height:1.4}
+.sl .tg{font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.sl li.done .nm,.sl li.done .dt{opacity:.5}
+.sl li.done .no{background:var(--ink);color:var(--paper)}
+.sl li.cur{background:var(--prep-soft);border-radius:10px;border-bottom-color:transparent}
+.sl li.cur .no{background:var(--k);color:#fff}
+.sl li.cur .tg{color:var(--k)}
 .t-progress{height:4px;background:var(--line);border-radius:2px;margin:10px 0 0;overflow:hidden}
 .t-progress i{display:block;height:100%;background:var(--ink);transform-origin:left center;transform:scaleX(0)}
 .t-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 0;min-height:0}
@@ -293,7 +313,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v34</p>
+    <p class="ver">앱 버전 v35</p>
   </div></details>
 </main>
 
@@ -314,7 +334,7 @@ svg[hidden]{display:none}
   <div class="t-top">
     <button type="button" class="icon-btn" id="tClose" aria-label="루틴 끝내기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <span id="tTitle"></span>
-    <span id="tStep" class="t-step"></span>
+    <button type="button" id="tStepBtn" class="t-step" aria-label="전체 루틴 보기"><span id="tStep"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
   </div>
   <div class="t-progress"><i id="tBar"></i></div>
   <div class="t-main">
@@ -338,6 +358,12 @@ svg[hidden]{display:none}
     <button type="button" class="ctl" id="tPrev" aria-label="이전 동작"><span class="ci"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6v12L8.5 12z" fill="currentColor"/><rect x="5" y="6" width="2.4" height="12" rx="1" fill="currentColor"/></svg></span><span class="cl">이전</span></button>
     <button type="button" class="ctl play" id="tPlay" aria-label="일시정지"><span class="ci"><svg id="icPause" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg><svg id="icPlay" width="30" height="30" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="cl" id="tPlayLabel">일시정지</span></button>
     <button type="button" class="ctl" id="tSkip" aria-label="건너뛰기"><span class="ci"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6v12l9.5-6z" fill="currentColor"/><rect x="16.6" y="6" width="2.4" height="12" rx="1" fill="currentColor"/></svg></span><span class="cl">건너뛰기</span></button>
+  </div>
+  <div id="tList" class="sheet" hidden>
+    <div class="sheet-panel" role="dialog" aria-label="전체 루틴">
+      <div class="sheet-head"><b id="tListTitle"></b><button type="button" class="icon-btn" id="tListClose" aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <ol id="tListBody" class="sl"></ol>
+    </div>
   </div>
   <div id="tConfirm" class="confirm" hidden>
     <p>루틴을 끝낼까요?</p>
@@ -1184,6 +1210,7 @@ function nextText(){
 }
 function paintSegment(){
   const seg=R.segs[R.idx],st=R.rt.steps[seg.step];
+  if(!$('#tList').hidden)paintList();
   T.dataset.kind=kindOf(seg,st);
   delete T.dataset.breath;
   $('#tStep').textContent=(R.order.indexOf(seg.step)+1)+' / '+R.order.length;
@@ -1390,6 +1417,7 @@ function finish(natural){
   keepAlive(false);clearRun();markDone(R.base);
   if(natural)letRing();else{unbook();chime();}
   $('#zoom').hidden=true;
+  if(!$('#tList').hidden){$('#tList').hidden=true;R.back=(R.back||-2)-1;}
   const secs=Math.max(0,Math.round((now-R.startedAt-R.pausedTotal)/1000));
   $('#dTitle').textContent=R.rt.title+'을 마쳤어요';
   $('#dTime').textContent='걸린 시간 '+Math.floor(secs/60)+'분 '+(secs%60)+'초';
@@ -1399,7 +1427,7 @@ function stop(){
   if(R){R.active=false;cancelAnimationFrame(R.raf);clearInterval(R.iv);}
   unbook();keepAlive(false);clearRun();
   releaseLock();hush();
-  $('#tConfirm').hidden=true;
+  $('#tConfirm').hidden=true;$('#tList').hidden=true;
   history.back();
 }
 
@@ -1415,8 +1443,71 @@ $('#tPlay').addEventListener('click',togglePause);
 $('#tPrev').addEventListener('click',goPrev);
 $('#tSkip').addEventListener('click',goSkip);
 $('#tSetDone').addEventListener('click',setDone);
+/* 전체 루틴 보기: 운동을 끝내지 않고 목록을 열어 보고, 원하는 동작으로 바로 이동 */
+let listClosing=false;
+function stepRange(s){
+  const strength=R.rt.type==='strength',mk=strength?'set':'prep';
+  let f=-1,l=-1;
+  R.segs.forEach((g,i)=>{
+    const has=g.step===s||g.step2===s;
+    if(!has)return;
+    if(strength?g.type==='set':true){if(f<0&&g.type===mk)f=i;l=i;}
+  });
+  return [f,l];
+}
+function paintList(){
+  const strength=R.rt.type==='strength',body=$('#tListBody');body.innerHTML='';
+  $('#tListTitle').textContent=R.rt.title;
+  const curSeg=R.segs[R.idx];
+  let curEl=null;
+  R.order.forEach((s,k)=>{
+    const st=R.rt.steps[s],[f,l]=stepRange(s);
+    if(f<0)return;
+    let state=R.idx>l?'done':(R.idx>=f?'cur':'next');
+    if(strength&&curSeg.type==='rest'&&(curSeg.step===s||curSeg.step2===s)&&R.idx<f)state='next';
+    let tag='';
+    if(strength){
+      const ws=R.segs.filter(g=>g.type==='set'&&!g.warm&&(g.step===s||g.step2===s));
+      const dn=ws.filter(g=>R.segs.indexOf(g)<R.idx).length;
+      tag=ws.length?dn+' / '+ws.length+'세트':'';
+    }else if(state==='cur')tag='진행 중';
+    else if(state==='done')tag='완료';
+    const li=document.createElement('li');li.className=state;
+    const b=document.createElement('button');b.type='button';
+    const no=document.createElement('span');no.className='no';no.textContent=state==='done'?'✓':String(k+1);
+    const box=document.createElement('span');
+    const nm=document.createElement('span');nm.className='nm';nm.textContent=st.n;
+    const dt=document.createElement('span');dt.className='dt';dt.textContent=st.d||'';
+    box.appendChild(nm);box.appendChild(dt);
+    const tg=document.createElement('span');tg.className='tg';tg.textContent=tag;
+    b.appendChild(no);b.appendChild(box);b.appendChild(tg);
+    b.setAttribute('aria-current',state==='cur'?'step':'false');
+    b.addEventListener('click',()=>{
+      if(state==='cur'){closeList();return;}
+      closeList();jump(f);
+    });
+    li.appendChild(b);body.appendChild(li);
+    if(state==='cur')curEl=li;
+  });
+  return curEl;
+}
+function openList(){
+  if(!R||!R.active||!$('#tList').hidden||!$('#tConfirm').hidden)return;
+  const cur=paintList();
+  $('#tList').hidden=false;
+  history.pushState({s:'list'},'');
+  if(cur&&cur.scrollIntoView)cur.scrollIntoView({block:"center"});
+}
+function closeList(){
+  if($('#tList').hidden)return;
+  $('#tList').hidden=true;listClosing=true;history.back();
+}
+$('#tStepBtn').addEventListener('click',openList);
+$('#tListClose').addEventListener('click',closeList);
+$('#tList').addEventListener('click',e=>{if(e.target===e.currentTarget)closeList();});
 function openConfirm(){
   if(!R||!R.active||!$('#tConfirm').hidden)return;
+  if(!$('#tList').hidden){$('#tList').hidden=true;listClosing=true;history.back();}
   R.wasPaused=R.paused;
   if(!R.paused)togglePause();
   $('#tConfirm').hidden=false;
@@ -1439,6 +1530,7 @@ $('#dAgain').addEventListener('click',()=>startRoutine(R.base,0,true));
 $('#dHome').addEventListener('click',()=>history.go(R&&R.back||-2));
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&!$('#zoom').hidden){closeZoom();return;}
+  if(e.key==='Escape'&&!$('#tList').hidden){closeList();return;}
   if(!R||!R.active||T.hidden)return;
   if(e.code==='Space'){e.preventDefault();togglePause();}
   else if(e.key==='ArrowRight')goSkip();
@@ -1495,6 +1587,8 @@ document.querySelectorAll('[data-len]').forEach(b=>{
 history.replaceState({s:'home'},'');
 window.addEventListener('popstate',e=>{
   if(zoomClosing){zoomClosing=false;return;}
+  if(listClosing){listClosing=false;return;}
+  if(!$('#tList').hidden){$('#tList').hidden=true;return;}
   if(!$('#zoom').hidden){$('#zoom').hidden=true;return;}
   const s=(e.state&&e.state.s)||'home';
   if(R&&R.active&&!T.hidden){history.pushState({s:'timer'},'');openConfirm();return;}
