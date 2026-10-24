@@ -182,6 +182,22 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .sl .rec .rd{flex:none;min-width:40px;color:var(--muted)}
 .sl .rec.now .rd,.sl .rec.now span:last-child{font-weight:700}
 .sl .dtl{text-align:left}
+.sl-tabs{display:flex;gap:6px;margin:6px 0 8px}
+.sl-tabs button{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:8px 10px;font:600 14px/1 var(--ui);cursor:pointer}
+.sl-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+#tRec{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+#tRec[hidden]{display:none}
+.rc-chips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px}
+.rc-chips button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 12px;font:600 13.5px/1 var(--ui);cursor:pointer}
+.rc-chips button[aria-pressed="true"]{background:var(--prep-soft);border-color:var(--ink)}
+.rc-last{font-size:13px;color:var(--muted);margin:0 0 4px}
+.rc-list{list-style:none;margin:0;padding:0}
+.rc-list li{padding:10px 2px;border-bottom:1px solid var(--line)}
+.rc-list li:last-child{border-bottom:0}
+.rc-list .nm{display:block;font-weight:600;font-size:15px;margin-bottom:3px}
+.rc-list .rec{display:flex;gap:8px;font-size:13.5px;line-height:1.5}
+.rc-list .rec .rd{flex:none;min-width:40px;color:var(--muted)}
+.rc-list .none{font-size:13.5px;color:var(--muted)}
 .sl .dtl .go{display:inline-block;width:auto;margin-top:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;font:600 13.5px/1 var(--ui);cursor:pointer;white-space:nowrap}
 .sl li.done .no{background:var(--ink);color:var(--paper)}
 .sl li.cur{background:var(--prep-soft);border-radius:10px;border-bottom-color:transparent}
@@ -328,7 +344,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v38</p>
+    <p class="ver">앱 버전 v39</p>
   </div></details>
 </main>
 
@@ -377,7 +393,9 @@ svg[hidden]{display:none}
   <div id="tList" class="sheet" hidden>
     <div class="sheet-panel" role="dialog" aria-label="전체 루틴">
       <div class="sheet-head"><b id="tListTitle"></b><button type="button" class="icon-btn" id="tListClose" aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="sl-tabs" id="tListTabs" role="group" aria-label="보기 선택"><button type="button" id="tabNow" aria-pressed="true">이번 루틴</button><button type="button" id="tabRec" aria-pressed="false">다른 루틴 기록</button></div>
   <ol id="tListBody" class="sl"></ol>
+  <div id="tRec" hidden></div>
     </div>
   </div>
   <div id="tConfirm" class="confirm" hidden>
@@ -1552,7 +1570,53 @@ function stepRange(s){
   });
   return [f,l];
 }
-let listOpen=new Set();
+let listOpen=new Set(),listMode='now',recRid=null;
+const LOGGED_IDS=()=>ROUTINES.filter(r=>LOGGED[r.id]);
+function lastDoneAt(id){const a=DONE[id];return Array.isArray(a)&&a.length?Math.max.apply(null,a):0;}
+function daysAgo(t){const d=Math.floor((Date.now()-t)/86400000);return d<=0?'오늘':d+'일 전';}
+/* 다른 루틴의 기록 보기 (읽기 전용, 운동은 그대로 진행) */
+function paintRec(){
+  const box=$('#tRec');box.innerHTML='';
+  const all=LOGGED_IDS();
+  if(!recRid||!byId[recRid]){
+    const others=all.filter(r=>r.id!==(R.base&&R.base.id)).sort((a,b)=>lastDoneAt(b.id)-lastDoneAt(a.id));
+    recRid=(others[0]||all[0]).id;
+  }
+  const chips=document.createElement('div');chips.className='rc-chips';
+  all.forEach(r=>{
+    const b=document.createElement('button');b.type='button';b.textContent=r.title.replace(/\s*\(.*\)$/,'');
+    b.setAttribute('aria-pressed',String(r.id===recRid));
+    b.addEventListener('click',()=>{recRid=r.id;paintRec();});
+    chips.appendChild(b);
+  });
+  box.appendChild(chips);
+  const rt=byId[recRid];
+  const ld=lastDoneAt(rt.id),p=document.createElement('p');p.className='rc-last';
+  p.textContent=(rt.id===(R.base&&R.base.id)?'지금 하는 루틴':(ld?'마지막 운동 '+daysAgo(ld):'아직 한 적 없는 루틴'));
+  box.appendChild(p);
+  const ul=document.createElement('ul');ul.className='rc-list';
+  rt.steps.forEach(st=>{
+    const li=document.createElement('li');
+    const nm=document.createElement('span');nm.className='nm';nm.textContent=st.n;li.appendChild(nm);
+    const arr=(LOG[rt.id+'·'+st.n]||[]).filter(x=>x.sets&&x.sets.length&&!(rt.id===(R.base&&R.base.id)&&x.t===R.sid)).slice(-3).reverse();
+    if(!arr.length){const n=document.createElement('span');n.className='none';n.textContent='기록 없음';li.appendChild(n);}
+    arr.forEach(x=>{
+      const r=document.createElement('div');r.className='rec';
+      r.innerHTML='<span class="rd"></span><span></span>';
+      r.firstChild.textContent=fmtDay(x.t);r.lastChild.textContent=setsText(x.sets);
+      li.appendChild(r);
+    });
+    ul.appendChild(li);
+  });
+  box.appendChild(ul);
+}
+function setListMode(m){
+  listMode=m;
+  $('#tabNow').setAttribute('aria-pressed',String(m==='now'));
+  $('#tabRec').setAttribute('aria-pressed',String(m==='rec'));
+  $('#tListBody').hidden=m!=='now';$('#tRec').hidden=m!=='rec';
+  if(m==='rec')paintRec();
+}
 const fmtDay=t=>{const d=new Date(t);return (d.getMonth()+1)+'/'+d.getDate();};
 const setsText=a=>{
   const g=[];
@@ -1639,7 +1703,7 @@ function openList(){
   if(!R||!R.active||!$('#tList').hidden||!$('#tConfirm').hidden)return;
   listOpen=new Set();
   const cur=paintList();
-  $('#tList').hidden=false;
+  $('#tList').hidden=false;setListMode('now');
   history.pushState({s:'list'},'');
   if(cur&&cur.scrollIntoView)cur.scrollIntoView({block:"center"});
 }
@@ -1648,6 +1712,8 @@ function closeList(){
   $('#tList').hidden=true;listClosing=true;history.back();
 }
 $('#tStepBtn').addEventListener('click',openList);
+$('#tabNow').addEventListener('click',()=>setListMode('now'));
+$('#tabRec').addEventListener('click',()=>setListMode('rec'));
 $('#tListClose').addEventListener('click',closeList);
 $('#tList').addEventListener('click',e=>{if(e.target===e.currentTarget)closeList();});
 function openConfirm(){
