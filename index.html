@@ -313,7 +313,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v35</p>
+    <p class="ver">앱 버전 v36</p>
   </div></details>
 </main>
 
@@ -607,30 +607,17 @@ const ROUTINES=[
 ];
 const GROUPS=[
  {tab:'stretch',name:'일상',ids:['morning','night','office']},
- {tab:'stretch',name:'러닝',ids:['runPre','runPost','runPN']},
- {tab:'stretch',name:'하체 근력',ids:['lowerPre','lowerPost','lowerPN']},
- {tab:'stretch',name:'상체 근력',ids:['upperPre','upperPost','upperPN']},
- {tab:'stretch',name:'전신 근력',ids:['fullPre','fullPost','fullPN']},
+ {tab:'stretch',name:'러닝',ids:['runPre','runPost']},
+ {tab:'stretch',name:'하체 근력',ids:['lowerPre','lowerPost']},
+ {tab:'stretch',name:'상체 근력',ids:['upperPre','upperPost']},
+ {tab:'stretch',name:'전신 근력',ids:['fullPre','fullPost']},
  {tab:'strength',name:'상체 근력',ids:['upperA','upperB']},
  {tab:'strength',name:'하체 근력',ids:['lowerA','lowerB']},
  {tab:'strength',name:'전신 근력',ids:['fullA','fullB']}
 ];
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
-/* 운동 후 + 자기 전 통합 루틴: 기존 동작을 골라 이어 붙임. 앞쪽은 그날 쓴 부위, 뒤쪽은 누워서 이완 (그림도 그대로 재사용) */
-const COMBOS=[
- {id:'upperPN',cell:'운동 후 + 취침',title:'상체 근력 후 + 자기 전 스트레칭',focus:'가슴·광배·어깨를 풀고 바로 이어서 누워 이완',
-  refs:[['upperPost',0],['upperPost',3],['upperPost',4],['upperPost',5],['upperPost',7],['upperPost',8],['night',5],['night',8],['night',9],['night',10]]},
- {id:'lowerPN',cell:'운동 후 + 취침',title:'하체 근력 후 + 자기 전 스트레칭',focus:'종아리·햄스트링·고관절을 풀고 바로 이어서 누워 이완',
-  refs:[['lowerPost',0],['lowerPost',1],['lowerPost',2],['lowerPost',3],['lowerPost',4],['night',8],['night',9],['night',10]]},
- {id:'fullPN',cell:'운동 후 + 취침',title:'전신 근력 후 + 자기 전 스트레칭',focus:'상체·하체 핵심 부위를 풀고 바로 이어서 누워 이완',
-  refs:[['fullPost',0],['fullPost',1],['fullPost',4],['fullPost',5],['fullPost',6],['fullPost',7],['night',8],['night',9],['night',10]]},
- {id:'runPN',cell:'운동 후 + 취침',title:'러닝 후 + 자기 전 스트레칭',focus:'종아리·허벅지·햄스트링·둔근을 풀고 바로 이어서 누워 이완',
-  refs:[['runPost',0],['runPost',2],['runPost',3],['runPost',5],['night',5],['night',8],['night',9],['night',10]]}
-];
-COMBOS.forEach(c=>{const rt={id:c.id,cell:c.cell,title:c.title,mode:'static',focus:c.focus,steps:c.refs.map(([r,i])=>byId[r].steps[i])};ROUTINES.push(rt);byId[rt.id]=rt;});
 const IMG_VERSION='21';
 const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
-COMBOS.forEach(c=>{const a=c.refs.map(([r,i])=>(IMGS[r]&&IMGS[r][i])||'');if(a.every(Boolean))IMGS[c.id]=a;});
 const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
 const imgFor=(rt,i)=>imgOk(rt)?(IMGS[rt.id][i]||''):'';
 const SWITCH_SEC=5;
