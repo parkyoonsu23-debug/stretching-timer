@@ -173,6 +173,16 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .sl .dt{display:block;font-size:13px;color:var(--muted);line-height:1.4}
 .sl .tg{font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap}
 .sl li.done .nm,.sl li.done .dt{opacity:.5}
+.sl .chev{display:inline-block;margin-left:4px;transition:transform .15s}
+.sl li.open .chev{transform:rotate(180deg)}
+.sl .dtl{padding:0 4px 12px 36px;font-size:13.5px;line-height:1.5}
+.sl .dtl[hidden]{display:none}
+.sl .dtl h4{margin:8px 0 3px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.sl .rec{display:flex;gap:8px}
+.sl .rec .rd{flex:none;min-width:40px;color:var(--muted)}
+.sl .rec.now .rd,.sl .rec.now span:last-child{font-weight:700}
+.sl .dtl{text-align:left}
+.sl .dtl .go{display:inline-block;width:auto;margin-top:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;font:600 13.5px/1 var(--ui);cursor:pointer;white-space:nowrap}
 .sl li.done .no{background:var(--ink);color:var(--paper)}
 .sl li.cur{background:var(--prep-soft);border-radius:10px;border-bottom-color:transparent}
 .sl li.cur .no{background:var(--k);color:#fff}
@@ -318,7 +328,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v37</p>
+    <p class="ver">앱 버전 v38</p>
   </div></details>
 </main>
 
@@ -1542,6 +1552,37 @@ function stepRange(s){
   });
   return [f,l];
 }
+let listOpen=new Set();
+const fmtDay=t=>{const d=new Date(t);return (d.getMonth()+1)+'/'+d.getDate();};
+const setsText=a=>{
+  const g=[];
+  a.forEach(x=>{const t=(x.w>0?fmtW(x.w)+'kg × ':'')+x.r+'회',l=g[g.length-1];if(l&&l.t===t)l.n++;else g.push({t,n:1});});
+  return g.map(x=>x.t+(x.n>1?' ('+x.n+'세트)':'')).join(' / ');
+};
+/* 펼친 동작: 이번 기록 + 최근 기록 + 그 동작으로 이동 */
+function fillDetail(box,st,s,state,f){
+  const arr=LOG[lk(st)]||[];
+  const cur=arr.find(x=>x.t===R.sid&&x.sets.length);
+  const h1=document.createElement('h4');h1.textContent='이번 운동';box.appendChild(h1);
+  const r1=document.createElement('div');r1.className='rec now';
+  r1.innerHTML='<span class="rd">오늘</span><span></span>';
+  r1.lastChild.textContent=cur?setsText(cur.sets):(state==='done'?'기록 없이 넘어갔어요':'아직 안 했어요');
+  box.appendChild(r1);
+  const past=arr.filter(x=>x.t!==R.sid&&x.sets.length).slice(-3).reverse();
+  const h2=document.createElement('h4');h2.textContent='최근 기록';box.appendChild(h2);
+  if(!past.length){const e=document.createElement('div');e.textContent='아직 기록이 없어요';box.appendChild(e);}
+  past.forEach(x=>{
+    const r=document.createElement('div');r.className='rec';
+    r.innerHTML='<span class="rd"></span><span></span>';
+    r.firstChild.textContent=fmtDay(x.t);r.lastChild.textContent=setsText(x.sets);
+    box.appendChild(r);
+  });
+  if(state!=='cur'){
+    const g=document.createElement('button');g.type='button';g.className='go';g.textContent='이 동작으로 이동';
+    g.addEventListener('click',()=>{closeList();jump(f);});
+    box.appendChild(g);
+  }
+}
 function paintList(){
   const strength=R.rt.type==='strength',body=$('#tListBody');body.innerHTML='';
   $('#tListTitle').textContent=R.rt.title;
@@ -1560,6 +1601,8 @@ function paintList(){
     }else if(state==='cur')tag='진행 중';
     else if(state==='done')tag='완료';
     const li=document.createElement('li');li.className=state;
+    const logged=logOn(R.base);
+    if(logged&&listOpen.has(s))li.classList.add('open');
     const b=document.createElement('button');b.type='button';
     const no=document.createElement('span');no.className='no';no.textContent=state==='done'?'✓':String(k+1);
     const box=document.createElement('span');
@@ -1569,17 +1612,32 @@ function paintList(){
     const tg=document.createElement('span');tg.className='tg';tg.textContent=tag;
     b.appendChild(no);b.appendChild(box);b.appendChild(tg);
     b.setAttribute('aria-current',state==='cur'?'step':'false');
-    b.addEventListener('click',()=>{
-      if(state==='cur'){closeList();return;}
-      closeList();jump(f);
-    });
-    li.appendChild(b);body.appendChild(li);
+    if(logged){
+      const ch=document.createElement('span');ch.className='chev';ch.textContent='▾';tg.appendChild(ch);
+      b.setAttribute('aria-expanded',String(listOpen.has(s)));
+      const dtl=document.createElement('div');dtl.className='dtl';dtl.hidden=!listOpen.has(s);
+      fillDetail(dtl,st,s,state,f);
+      b.addEventListener('click',()=>{
+        const on=!listOpen.has(s);
+        if(on)listOpen.add(s);else listOpen.delete(s);
+        li.classList.toggle('open',on);dtl.hidden=!on;b.setAttribute('aria-expanded',String(on));
+      });
+      li.appendChild(b);li.appendChild(dtl);
+    }else{
+      b.addEventListener('click',()=>{
+        if(state==='cur'){closeList();return;}
+        closeList();jump(f);
+      });
+      li.appendChild(b);
+    }
+    body.appendChild(li);
     if(state==='cur')curEl=li;
   });
   return curEl;
 }
 function openList(){
   if(!R||!R.active||!$('#tList').hidden||!$('#tConfirm').hidden)return;
+  listOpen=new Set();
   const cur=paintList();
   $('#tList').hidden=false;
   history.pushState({s:'list'},'');
