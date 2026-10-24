@@ -344,7 +344,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v39</p>
+    <p class="ver">앱 버전 v40</p>
   </div></details>
 </main>
 
@@ -416,7 +416,7 @@ svg[hidden]{display:none}
 <video id="pipVid" muted playsinline aria-hidden="true"></video>
 <div id="zoom" class="zoom" hidden><img id="zoomImg" alt=""></div>
 
-<script src="images.js?v=21"></script>
+<script src="images.js?v=22"></script>
 <script>
 (function(){
 'use strict';
@@ -582,7 +582,7 @@ const ROUTINES=[
  {n:'케이블 힙 어덕션',d:'5세트 × 좌우 12~15회 · 로우 풀리, 앵클 스트랩',rp:'12~15회',per:'좌우 각각',est:60},
  {n:'레그 컬',d:'4세트 × 10~12회 · 정강이 컬과 이어서',rp:'10~12회',est:40},
  {n:'정강이 컬',d:'4세트 × 15~20회',rp:'15~20회',est:45},
- {n:'레그 프레스',d:'5세트 × 8~10회 · 카프 레이즈와 이어서',rp:'8~10회',est:40},
+ {n:'프론트 스쿼트',d:'5세트 × 6~8회 · 카프 레이즈와 이어서',rp:'6~8회',est:45},
  {n:'한다리 스탠딩 카프 레이즈',d:'5세트 × 8~12회',rp:'8~12회',per:'한 다리씩',est:50}
 ],blocks:[
  {i:[0],sets:5,rest:120},{i:[1],sets:5,rest:90},{i:[2,3],sets:5,rest:45},{i:[4,5],sets:4,rest:60},{i:[6,7],sets:5,rest:60}
@@ -650,7 +650,7 @@ const GROUPS=[
  {tab:'strength',name:'전신 근력',ids:['fullA','fullB']}
 ];
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
-const IMG_VERSION='21';
+const IMG_VERSION='22';
 const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
 const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
 const imgFor=(rt,i)=>imgOk(rt)?(IMGS[rt.id][i]||''):'';
