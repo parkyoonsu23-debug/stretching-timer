@@ -359,7 +359,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v42</p>
+    <p class="ver">앱 버전 v43</p>
   </div></details>
 </main>
 
@@ -433,7 +433,7 @@ svg[hidden]{display:none}
 <video id="pipVid" muted playsinline aria-hidden="true"></video>
 <div id="zoom" class="zoom" hidden><img id="zoomImg" alt=""></div>
 
-<script src="images.js?v=22"></script>
+<script src="images.js?v=23"></script>
 <script>
 (function(){
 'use strict';
@@ -511,7 +511,7 @@ const ROUTINES=[
  {n:'90/90 자세로 앉아 앞다리 쪽으로 상체 숙이기',d:'좌우 45초',s:45,sides:LR},
  {n:'나비 자세',d:'60초 + PNF',s:60,pnf:true,cue:'무릎으로 손 밀어 올리기'},
  {n:'앉아서 다리 넓게 벌려 앞으로 숙이기',d:'60초',s:60},
- {n:'누워서 두 무릎 가슴으로 당기기',d:'45초',s:45}
+ {n:'누워서 척추 비틀기',d:'좌우 45초',s:45,sides:LR}
 ]},
 {id:'upperPre',cell:'운동 전',title:'상체 근력 전 스트레칭',mode:'dynamic',focus:'바닥에서 일어서며 흉추·어깨 가동성과 안정화',steps:[
  {n:'캣카우',d:'8회',s:40,reps:8},
@@ -667,7 +667,7 @@ const GROUPS=[
  {tab:'strength',name:'전신 근력',ids:['fullA','fullB']}
 ];
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
-const IMG_VERSION='22';
+const IMG_VERSION='23';
 const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
 const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
 const imgFor=(rt,i)=>imgOk(rt)?(IMGS[rt.id][i]||''):'';
