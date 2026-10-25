@@ -228,6 +228,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .dots i.on{background:var(--contract)}
 .set-done{display:block;width:100%;max-width:340px;margin:12px auto 0;background:var(--k);color:var(--paper);border:0;border-radius:14px;padding:16px;font-weight:700;font-size:18px;cursor:pointer}
 .set-done[hidden]{display:none}
+.defer{display:block;margin:10px auto 0;background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:9px 16px;font:600 13.5px/1.3 var(--ui);cursor:pointer}
+.defer[hidden]{display:none}
+.toast{position:fixed;left:50%;top:calc(64px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:30;background:var(--ink);color:var(--paper);border-radius:999px;padding:10px 18px;font:600 14px/1.3 var(--ui);box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
+.toast[hidden]{display:none}
 svg[hidden]{display:none}
 #timer.strength .t-figure{height:clamp(110px,21vh,210px);margin-top:6px}
 #timer.strength .ring{--rs:min(40vw,18vh,190px);margin:8px 0 2px}
@@ -344,7 +348,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v40</p>
+    <p class="ver">앱 버전 v41</p>
   </div></details>
 </main>
 
@@ -383,6 +387,7 @@ svg[hidden]{display:none}
     <p id="tCue" class="cue"></p>
     <div id="tDots" class="dots" hidden aria-hidden="true"><i></i><i></i><i></i></div>
     <button type="button" id="tSetDone" class="set-done" hidden>세트 완료</button>
+    <button type="button" id="tDefer" class="defer" hidden>기구가 사용 중이에요 · 다음 순서로 넘기기</button>
   </div>
   <p id="tNext" class="next"></p>
   <div class="t-controls">
@@ -390,6 +395,7 @@ svg[hidden]{display:none}
     <button type="button" class="ctl play" id="tPlay" aria-label="일시정지"><span class="ci"><svg id="icPause" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg><svg id="icPlay" width="30" height="30" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span><span class="cl" id="tPlayLabel">일시정지</span></button>
     <button type="button" class="ctl" id="tSkip" aria-label="건너뛰기"><span class="ci"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6v12l9.5-6z" fill="currentColor"/><rect x="16.6" y="6" width="2.4" height="12" rx="1" fill="currentColor"/></svg></span><span class="cl">건너뛰기</span></button>
   </div>
+  <div id="tToast" class="toast" role="status" aria-live="polite" hidden></div>
   <div id="tList" class="sheet" hidden>
     <div class="sheet-panel" role="dialog" aria-label="전체 루틴">
       <div class="sheet-head"><b id="tListTitle"></b><button type="button" class="icon-btn" id="tListClose" aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -698,6 +704,13 @@ function scaleStep(st,k){
   }
   return o;
 }
+/* 운동 순서 바꾸기: border = 원래 블록 번호를 실제 순서대로 나열한 배열 */
+function withOrder(v,border){
+  if(!v||v.type!=='strength'||!Array.isArray(border))return v;
+  const n=v.blocks.length;
+  if(border.length!==n||border.slice().sort((a,b)=>a-b).some((x,i)=>x!==i))return v;
+  return Object.assign({},v,{blocks:border.map(i=>Object.assign({},v.blocks[i],{o:i}))});
+}
 function view(rt){
   if(rt.type==='strength')return rt;
   const k=LEN[settings.len]||1;
@@ -832,21 +845,21 @@ const fmtRest=n=>n>=60&&n%60===0?(n/60)+'분':n+'초';
 const segW=s=>s.est!=null?s.est:s.dur;
 function buildStrength(rt){
   const segs=[],seq=[];
-  rt.blocks.forEach(b=>{
-    const ids=b.i.filter(i=>!isHidden(rt,rt.steps[i]));
-    for(let n=1;n<=b.sets&&ids.length;n++)seq.push({i:ids[0],i2:ids.length>1?ids[1]:null,n,total:b.sets,rest:b.rest});
+  rt.blocks.forEach((b,bi)=>{
+    const ids=b.i.filter(i=>!isHidden(rt,rt.steps[i])),o=b.o!=null?b.o:bi;
+    for(let n=1;n<=b.sets&&ids.length;n++)seq.push({i:ids[0],i2:ids.length>1?ids[1]:null,n,total:b.sets,rest:b.rest,blk:o});
   });
   /* 기록하는 루틴은 첫 운동 앞에 워밍업 3세트(가볍게 → 작업 무게 근처)를 일반 세트처럼 둔다 */
   if(logOn(rt)&&seq.length&&seq[0].i2==null){
-    const w=[];for(let n=1;n<=3;n++)w.push({i:seq[0].i,i2:null,n,total:3,rest:60,warm:true});
+    const w=[];for(let n=1;n<=3;n++)w.push({i:seq[0].i,i2:null,n,total:3,rest:60,warm:true,blk:seq[0].blk});
     seq.unshift.apply(seq,w);
   }
   seq.forEach((x,k)=>{
     const st=rt.steps[x.i],last=k===seq.length-1;
     const hint=last?'마지막 세트':'끝나면 휴식 '+fmtRest(x.rest);
     const est=x.warm?30:(st.est||40)+(x.i2!=null?(rt.steps[x.i2].est||40):0);
-    segs.push({type:'set',step:x.i,step2:x.i2,setNo:x.n,setTotal:x.total,warm:!!x.warm,manual:true,dur:SET_MAX,est,hint,last});
-    if(x.rest&&!last){const nx=seq[k+1];segs.push({type:'rest',step:nx.i,step2:nx.i2,setNo:nx.n,setTotal:nx.total,warm:!!nx.warm,dur:x.rest});}
+    segs.push({type:'set',step:x.i,step2:x.i2,setNo:x.n,setTotal:x.total,warm:!!x.warm,manual:true,dur:SET_MAX,est,hint,last,blk:x.blk});
+    if(x.rest&&!last){const nx=seq[k+1];segs.push({type:'rest',step:nx.i,step2:nx.i2,setNo:nx.n,setTotal:nx.total,warm:!!nx.warm,dur:x.rest,blk:nx.blk});}
   });
   return segs;
 }
@@ -1071,7 +1084,7 @@ function savedRun(){
 function paintResume(){
   const s=savedRun(),box=$('#resume');
   if(!s){box.hidden=true;return;}
-  const rt=byId[s.rid],segs=buildSegments(view(rt)),seg=segs[Math.min(Math.max(0,s.idx|0),segs.length-1)];
+  const rt=byId[s.rid],segs=buildSegments(withOrder(view(rt),s.border)),seg=segs[Math.min(Math.max(0,s.idx|0),segs.length-1)];
   if(!seg){box.hidden=true;return;}
   const st=rt.steps[seg.step];
   let info=st.n;
@@ -1275,6 +1288,7 @@ function paintSegment(){
   $('#tNext').textContent=nextText();
   paintLog(seg);$('#tNext').textContent=nextText();
   const sd=$('#tSetDone');sd.hidden=seg.type!=='set';sd.textContent=seg.last?'마지막 세트 완료':'세트 완료';
+  $('#tDefer').hidden=!deferInfo();
 }
 function cueVoice(seg,st){
   if(seg.type==='set'&&seg.step2!=null){const b=R.rt.steps[seg.step2];say(speakName(st.n)+', 이어서 '+speakName(b.n)+', '+seg.setNo+'세트');return;}
@@ -1295,7 +1309,7 @@ function persist(){
   if(!R||!R.active)return;
   const w=Date.now(),p=performance.now();
   store.set('run',{rid:R.base.id,sid:R.sid,idx:R.idx,segStart:w-(p-R.segStart),started:w-(p-R.startedAt),pausedTotal:R.pausedTotal||0,
-    paused:!!R.paused,pauseRemain:R.paused?R.pauseRemain:0,savedAt:w});
+    paused:!!R.paused,pauseRemain:R.paused?R.pauseRemain:0,savedAt:w,border:R.border||null});
 }
 function clearRun(){try{localStorage.removeItem('stretch-timer:run');}catch(e){}}
 function enterSegment(announce){
@@ -1399,6 +1413,38 @@ function goPrev(){
   let j=p-1;while(j>=0&&R.segs[j].type!=='prep')j--;
   jump(j>=0?j:p);
 }
+/* 기구가 비지 않았을 때: 지금 운동을 다음 운동 뒤로 미루고 다음 운동을 먼저 시작 */
+const blkOf=(b,i)=>b.o!=null?b.o:i;
+const blkVisible=b=>b.i.some(i=>!isHidden(R.rt,R.rt.steps[i]));
+function deferInfo(){
+  if(!R||!R.active||R.rt.type!=='strength')return null;
+  const seg=R.segs[R.idx];if(!seg||seg.blk==null||(seg.type!=='set'&&seg.type!=='rest'))return null;
+  const bl=R.rt.blocks,pos=bl.findIndex((b,i)=>blkOf(b,i)===seg.blk);
+  if(pos<0)return null;
+  if(R.segs.some((g,k)=>k<R.idx&&g.type==='set'&&!g.warm&&g.blk===seg.blk))return null;   /* 이미 작업 세트를 했으면 불가 */
+  let nx=-1;for(let q=pos+1;q<bl.length;q++)if(blkVisible(bl[q])){nx=q;break;}
+  return nx<0?null:{pos,nx};
+}
+function deferBlock(){
+  const info=deferInfo();if(!info)return false;
+  const bl=R.rt.blocks,arr=bl.map((b,i)=>blkOf(b,i));
+  const cur=arr.splice(info.pos,1)[0];arr.splice(info.nx,0,cur);
+  R.rt=withOrder(R.base,arr);R.border=arr;
+  const segs=buildSegments(R.rt),cum=[];let acc=0;
+  segs.forEach((g,i)=>{cum[i]=acc;acc+=segW(g);});
+  const posOf=o=>R.rt.blocks.findIndex((b,i)=>blkOf(b,i)===o);
+  let t=segs.findIndex(g=>g.blk!=null&&posOf(g.blk)>=info.pos);if(t<0)t=0;
+  R.segs=segs;R.cum=cum;R.total=acc;
+  R.order=[];segs.forEach(g=>{if(g.type==='set'&&R.order.indexOf(g.step)<0)R.order.push(g.step);});
+  jump(t);persist();
+  toast('다음 순서로 넘겼어요');
+  return true;
+}
+let toastT=0;
+function toast(msg){
+  const el=$('#tToast');el.textContent=msg;el.hidden=false;clearTimeout(toastT);
+  toastT=setTimeout(()=>{el.hidden=true;},2600);
+}
 function goSkip(){
   if(R.idx>=R.segs.length-1){finish();return;}
   jump(R.idx+1);
@@ -1489,7 +1535,7 @@ pipVid.addEventListener('webkitpresentationmodechanged',()=>{if(pipVid.webkitPre
 if(pipSupported())pipBtn.hidden=false;
 pipBtn.addEventListener('click',()=>{if(pip.on)pipStop();else pipStart();});
 function startRoutine(rt,fromStep,replace,restore){
-  const v=view(rt),segs=buildSegments(v);
+  const v=withOrder(view(rt),restore&&restore.border),segs=buildSegments(v);
   if(!segs.length)return;
   ensureAudio();
   current=rt;
@@ -1499,7 +1545,7 @@ function startRoutine(rt,fromStep,replace,restore){
   unbook();
   const cum=[];let acc=0;
   segs.forEach((s,i)=>{cum[i]=acc;acc+=segW(s);});
-  R={rt:v,base:rt,segs,cum,total:acc,idx:0,active:true,paused:false,pausedTotal:0,back:(restore&&!replace)?-1:-2,sid:(restore&&restore.sid)||Date.now()};
+  R={rt:v,base:rt,border:(restore&&v!==view(rt)&&Array.isArray(restore.border))?restore.border:null,segs,cum,total:acc,idx:0,active:true,paused:false,pausedTotal:0,back:(restore&&!replace)?-1:-2,sid:(restore&&restore.sid)||Date.now()};
   const mark=v.type==='strength'?'set':'prep';
   R.order=[];segs.forEach(s=>{if(s.type===mark&&R.order.indexOf(s.step)<0)R.order.push(s.step);});
   let si=segs.findIndex(s=>s.type===mark&&(s.step>=(fromStep||0)||(s.step2!=null&&s.step2>=(fromStep||0))));if(si<0)si=0;
@@ -1558,6 +1604,7 @@ $('#tPlay').addEventListener('click',togglePause);
 $('#tPrev').addEventListener('click',goPrev);
 $('#tSkip').addEventListener('click',goSkip);
 $('#tSetDone').addEventListener('click',setDone);
+$('#tDefer').addEventListener('click',deferBlock);
 /* 전체 루틴 보기: 운동을 끝내지 않고 목록을 열어 보고, 원하는 동작으로 바로 이동 */
 let listClosing=false;
 function stepRange(s){
