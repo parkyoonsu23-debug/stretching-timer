@@ -359,7 +359,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v43</p>
+    <p class="ver">앱 버전 v44</p>
   </div></details>
 </main>
 
@@ -599,7 +599,7 @@ const ROUTINES=[
  {n:'케이블 힙 어덕션',d:'5세트 × 좌우 12~15회 · 로우 풀리, 앵클 스트랩',rp:'12~15회',per:'좌우 각각',est:60},
  {n:'레그 컬',d:'4세트 × 10~12회 · 정강이 컬과 이어서',rp:'10~12회',est:40},
  {n:'정강이 컬',d:'4세트 × 15~20회',rp:'15~20회',est:45},
- {n:'프론트 스쿼트',d:'5세트 × 6~8회 · 카프 레이즈와 이어서',rp:'6~8회',est:45},
+ {n:'리버스 런지',d:'5세트 × 좌우 8~10회 · 카프 레이즈와 이어서',rp:'8~10회',per:'좌우 각각',est:60},
  {n:'한다리 스탠딩 카프 레이즈',d:'5세트 × 8~12회',rp:'8~12회',per:'한 다리씩',est:50}
 ],blocks:[
  {i:[0],sets:5,rest:120},{i:[1],sets:5,rest:90},{i:[2,3],sets:5,rest:45},{i:[4,5],sets:4,rest:60},{i:[6,7],sets:5,rest:60}
@@ -793,7 +793,7 @@ function warmDefault(st,seg,sid){
   return{w:fit(W*f),r:rr,hint:'지난번 작업 '+fmtW(W)+'kg의 약 '+Math.round(f*100)+'%',up:false};
 }
 /* 바벨 원판 계산: 총 무게 - 빈 바 를 반으로 나눠 한쪽에 끼울 원판을 큰 것부터 채움 */
-const BARBELL=/^(백스쿼트|프론트 스쿼트|벤치프레스|데드리프트|루마니안 데드리프트|힙 쓰러스트)$/;
+const BARBELL=/^(백스쿼트|벤치프레스|데드리프트|루마니안 데드리프트|힙 쓰러스트)$/;
 function plateText(w){
   const bar=settings.bar;
   if(!(w>0)||!(bar>0))return '';
