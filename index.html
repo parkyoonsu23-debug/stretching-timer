@@ -124,6 +124,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .no{font-family:var(--num);font-weight:600;font-size:18px;font-variation-settings:"wdth" 90,"wght" 600;color:var(--muted);align-self:start;padding-top:1px}
 .st-name{display:block;font-weight:500;line-height:1.45}
 .st-detail{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.alt-btn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:4px 10px;font:600 12px/1.2 var(--ui);cursor:pointer;margin-top:6px}
+.alt-btn[aria-expanded="true"]{color:var(--ink);border-color:var(--ink)}
+.alt-pick{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.alt-pick button{text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 12px;font:500 13.5px/1.35 var(--ui);cursor:pointer}
+.alt-pick button[aria-pressed="true"]{border-color:var(--ink);font-weight:700}
+.alt-pick small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.badge.alt{color:var(--muted)}
 .badge{display:inline-block;font-size:11px;font-weight:700;color:var(--contract);border:1px solid currentColor;border-radius:5px;padding:0 5px;margin-left:6px;vertical-align:1px;line-height:1.5}
 .from{border:0;background:var(--prep-soft);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--ink)}
 .start-bar{position:fixed;left:0;right:0;bottom:0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));background:var(--paper);border-top:1px solid var(--line)}
@@ -359,7 +366,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v44</p>
+    <p class="ver">앱 버전 v45</p>
   </div></details>
 </main>
 
@@ -433,7 +440,7 @@ svg[hidden]{display:none}
 <video id="pipVid" muted playsinline aria-hidden="true"></video>
 <div id="zoom" class="zoom" hidden><img id="zoomImg" alt=""></div>
 
-<script src="images.js?v=23"></script>
+<script src="images.js?v=24"></script>
 <script>
 (function(){
 'use strict';
@@ -569,8 +576,8 @@ const ROUTINES=[
  {n:'덤벨 해머컬',d:'3세트 × 8~12회',rp:'8~12회',est:40},
  {n:'케이블 크런치',d:'2세트 × 12~15회 · 페이스풀과 이어서',rp:'12~15회',est:45},
  {n:'페이스풀',d:'2세트 × 12~15회',rp:'12~15회',est:45},
- {n:'팔로프 프레스',d:'3세트 × 좌우 10~12회 · 리버스 플라이와 이어서',rp:'10~12회',per:'좌우 각각',est:60},
- {n:'케이블 원암 리버스 플라이',d:'3세트 × 좌우 12~15회',rp:'12~15회',per:'좌우 각각',est:60}
+ {n:'팔로프 프레스',d:'3세트 × 좌우 10~12회 · 원암 트라이셉스 푸시다운과 이어서',rp:'10~12회',per:'좌우 각각',est:60},
+ {n:'케이블 원암 트라이셉스 푸시다운',d:'3세트 × 좌우 12~15회',rp:'12~15회',per:'좌우 각각',est:60}
 ],blocks:[
  {i:[0],sets:5,rest:120},{i:[1],sets:5,rest:120},{i:[2],sets:3,rest:60},
  {i:[3,4],sets:3,rest:60},{i:[5,6],sets:3,rest:60},{i:[7,8],sets:2,rest:45},{i:[9,10],sets:3,rest:45}
@@ -582,8 +589,8 @@ const ROUTINES=[
  {n:'벤치프레스',d:'3세트 × 6~8회 · 중간 무게',rp:'6~8회',est:40},
  {n:'클로즈그립 덤벨 프레스',d:'3세트 × 6~8회 · 덤벨 해머컬과 이어서',rp:'6~8회',est:40},
  {n:'덤벨 해머컬',d:'3세트 × 8~12회',rp:'8~12회',est:40},
- {n:'원암 덤벨 로우',d:'3세트 × 좌우 8~10회 · 리어 델트 플라이와 이어서',rp:'8~10회',per:'좌우 각각',est:55},
- {n:'덤벨 리어 델트 플라이',d:'3세트 × 12~15회',rp:'12~15회',est:45},
+ {n:'원암 덤벨 로우',d:'3세트 × 좌우 8~10회 · 덤벨 슈러그와 이어서',rp:'8~10회',per:'좌우 각각',est:55},
+ {n:'덤벨 슈러그',d:'3세트 × 10~12회',rp:'10~12회',est:40},
  {n:'케이블 크런치',d:'2세트 × 12~15회 · 페이스풀과 이어서',rp:'12~15회',est:45},
  {n:'페이스풀',d:'2세트 × 12~15회',rp:'12~15회',est:45},
  {n:'팔로프 프레스',d:'3세트 × 좌우 10~12회 · 원암 레터럴 레이즈와 이어서',rp:'10~12회',per:'좌우 각각',est:60},
@@ -645,8 +652,8 @@ const ROUTINES=[
  {n:'한다리 카프 레이즈',d:'3세트 × 8~12회',rp:'8~12회',per:'한 다리씩',est:50},
  {n:'덤벨 오버헤드프레스',d:'3세트 × 5회 · 리버스 런지와 이어서',rp:'5회',est:30},
  {n:'리버스 런지',d:'3세트 × 8~10회',rp:'8~10회',est:50},
- {n:'덤벨 사이드 레터럴',d:'2세트 × 12~15회 · 리어 델트 플라이와 이어서',rp:'12~15회',est:45},
- {n:'덤벨 리어 델트 플라이',d:'2세트 × 12~15회',rp:'12~15회',est:45},
+ {n:'덤벨 사이드 레터럴',d:'2세트 × 12~15회 · 덤벨 Y 레이즈와 이어서',rp:'12~15회',est:45},
+ {n:'덤벨 Y 레이즈',d:'2세트 × 12~15회',rp:'12~15회',est:45},
  {n:'랫풀다운 (와이드 그립)',d:'3세트 × 5~6회 · 케이블 크런치와 이어서',rp:'5~6회',est:35},
  {n:'케이블 크런치',d:'3세트 × 12~15회',rp:'12~15회',est:45},
  {n:'케이블 스탠딩 레그 컬',d:'3세트 × 좌우 10~12회 · 힙 어브덕션과 이어서',rp:'10~12회',per:'좌우 각각',est:60},
@@ -667,10 +674,24 @@ const GROUPS=[
  {tab:'strength',name:'전신 근력',ids:['fullA','fullB']}
 ];
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
-const IMG_VERSION='23';
+const IMG_VERSION='24';
 const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
 const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
-const imgFor=(rt,i)=>imgOk(rt)?(IMGS[rt.id][i]||''):'';
+const ALT_IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_ALT_IMAGES)||{};
+let BYNAME=null;
+const imgGroup=rid=>(rid==='fullA'||rid==='fullB')?'f':'m';
+function byName(){
+  if(BYNAME)return BYNAME;
+  BYNAME={m:{},f:{}};
+  ROUTINES.forEach(rt=>{
+    if(rt.type!=='strength'||!IMGS[rt.id])return;
+    const g=imgGroup(rt.id);
+    rt.steps.forEach((st,i)=>{const im=IMGS[rt.id][i];if(im&&!BYNAME[g][st.n])BYNAME[g][st.n]=im;});
+  });
+  return BYNAME;
+}
+const altImg=(rid,name)=>{const g=imgGroup(rid);return ALT_IMGS[g+':'+name]||byName()[g][name]||'';};
+const imgFor=(rt,i)=>{const st=rt.steps[i];if(st&&st.alt)return altImg(rt.id,st.n);return imgOk(rt)?(IMGS[rt.id][i]||''):'';};
 const SWITCH_SEC=5;
 const CIRC=2*Math.PI*88;
 
@@ -690,10 +711,11 @@ const saveSettings=()=>store.set('settings',settings);
 
 /* 뺀 동작 (이 기기에서만, 동작 이름으로 기억) */
 const hiddenMap=(()=>{const v=store.get('hidden',{});return v&&typeof v==='object'?v:{};})();
-const isHidden=(rt,st)=>Array.isArray(hiddenMap[rt.id])&&hiddenMap[rt.id].indexOf(st.n)>=0;
+const hkey=st=>st.orig||st.n;
+const isHidden=(rt,st)=>Array.isArray(hiddenMap[rt.id])&&hiddenMap[rt.id].indexOf(hkey(st))>=0;
 function setHidden(rt,st,off){
-  const arr=(Array.isArray(hiddenMap[rt.id])?hiddenMap[rt.id]:[]).filter(n=>n!==st.n);
-  if(off)arr.push(st.n);
+  const arr=(Array.isArray(hiddenMap[rt.id])?hiddenMap[rt.id]:[]).filter(n=>n!==hkey(st));
+  if(off)arr.push(hkey(st));
   if(arr.length)hiddenMap[rt.id]=arr;else delete hiddenMap[rt.id];
   store.set('hidden',hiddenMap);
 }
@@ -715,6 +737,83 @@ function scaleStep(st,k){
   }
   return o;
 }
+/* 대체 동작: 기본 동작 이름 → [[이름, 횟수, 좌우(0 없음·1 좌우 각각·2 한 다리씩), 세트당 예상 초, 메모]] */
+const ALTS={
+ '벤치프레스':[['덤벨 벤치프레스','6~8회',0,40,'가슴을 늘리며 내리기'],['푸시업 (등에 원판)','10~15회',0,40,'원판은 등 윗부분에']],
+ '케이블 로우':[['인클라인 벤치 가슴 지지 로우','8~10회',0,45,'벤치에 가슴을 대고 덤벨로'],['바벨 벤트오버 로우','6~8회',0,45,'허리 중립']],
+ '덤벨 오버헤드프레스':[['바벨 오버헤드프레스','5회',0,40,'랙은 가슴 높이'],['덤벨 시티드 숄더 프레스','6~8회',0,40,'등받이를 세운 벤치']],
+ '인클라인 덤벨 프레스':[['덤벨 플로어 프레스','8~10회',0,40,''],['인클라인 케이블 플라이','10~12회',0,45,'']],
+ '덤벨 사이드 레터럴':[['케이블 원암 레터럴 레이즈','12~15회',1,60,'낮은 풀리']],
+ '양손 덤벨 로우':[['바벨 벤트오버 로우','6~8회',0,45,'허리 중립'],['인클라인 벤치 가슴 지지 로우','8~10회',0,45,'벤치에 가슴을 대고 덤벨로']],
+ '덤벨 해머컬':[['덤벨 얼터네이트 컬','8~12회',0,40,''],['인클라인 덤벨 컬','10~12회',0,40,'벤치를 눕혀서']],
+ '케이블 크런치':[['행잉 레그 레이즈','10~15회',0,45,''],['데드버그','10~12회',1,45,'']],
+ '페이스풀':[['덤벨 슈러그','10~12회',0,40,''],['사이드라이 덤벨 외회전','12~15회',1,50,'가벼운 무게']],
+ '팔로프 프레스':[['데드버그','8~12회',1,45,''],['버드독','10~12회',1,45,'']],
+ '케이블 원암 트라이셉스 푸시다운':[['덤벨 오버헤드 트라이셉스 익스텐션','10~12회',0,45,''],['덤벨 킥백','12~15회',1,45,''],['케이블 원암 리버스 플라이','12~15회',1,60,'원래 동작']],
+ '덤벨 슈러그':[['덤벨 리어 델트 플라이','12~15회',0,45,'원래 동작'],['덤벨 업라이트 로우','10~12회',0,40,'']],
+ '덤벨 Y 레이즈':[['덤벨 리어 델트 플라이','12~15회',0,45,'원래 동작'],['케이블 원암 레터럴 레이즈','12~15회',1,60,'낮은 풀리']],
+ '랫풀다운':[['풀업','5~8회',0,40,'어시스트 사용 가능'],['케이블 원암 랫풀다운','8~10회',1,55,'']],
+ '랫풀다운 (와이드 그립)':[['와이드 그립 풀업','5~8회',0,40,'어시스트 사용 가능'],['케이블 원암 랫풀다운','8~10회',1,55,'']],
+ '랫풀다운 (클로즈 그립)':[['친업','5~8회',0,40,'어시스트 사용 가능'],['케이블 원암 랫풀다운','8~10회',1,55,'']],
+ '케이블 푸시다운':[['덤벨 오버헤드 트라이셉스 익스텐션','10~12회',0,45,''],['덤벨 킥백','12~15회',1,45,'']],
+ '클로즈그립 덤벨 프레스':[['클로즈그립 벤치프레스','6~8회',0,40,'']],
+ '원암 덤벨 로우':[['케이블 원암 스탠딩 로우','10~12회',1,60,'']],
+ '케이블 원암 레터럴 레이즈':[['덤벨 사이드 레터럴','12~15회',0,45,'']],
+ '케이블 원암 스탠딩 로우':[['원암 덤벨 로우','8~10회',1,55,'']],
+ '백스쿼트':[['프론트 스쿼트','5~6회',0,45,'백스쿼트보다 가볍게'],['스미스머신 스쿼트','6~8회',0,40,'스미스머신이 있을 때']],
+ '루마니안 데드리프트':[['덤벨 루마니안 데드리프트','6~8회',0,40,''],['케이블 풀스루','10~12회',0,40,'로프 사용']],
+ '데드리프트':[['스모 데드리프트','3~4회',0,40,''],['랙 풀','3~5회',0,40,'무릎 높이에 세팅']],
+ '케이블 힙 어브덕션':[['사이드라잉 힙 어브덕션','15~20회',1,50,'바닥에 옆으로 누워서']],
+ '케이블 힙 어덕션':[['사이드라잉 힙 어덕션','12~15회',1,50,'바닥에 옆으로 누워서']],
+ '케이블 스탠딩 레그 컬':[['레그 컬','10~12회',0,40,'머신']],
+ '레그 컬':[['케이블 스탠딩 레그 컬','10~12회',1,60,'앵클 스트랩']],
+ '정강이 컬':[['시티드 토 레이즈','15~20회',0,40,'발끝 들기']],
+ '리버스 런지':[['워킹 런지','10~12회',1,60,''],['덤벨 스텝업','8~10회',1,60,'벤치 높이']],
+ '한다리 스탠딩 카프 레이즈':[['시티드 카프 레이즈','10~12회',0,40,'']],
+ '한다리 카프 레이즈':[['시티드 카프 레이즈','10~12회',0,40,'']],
+ '시티드 카프 레이즈':[['한다리 스탠딩 카프 레이즈','8~12회',2,45,'']],
+ '힙 쓰러스트':[['글루트 브릿지 (바벨)','8~12회',0,40,''],['케이블 풀스루','10~15회',0,40,'로프 사용']],
+ '불가리안 스플릿 스쿼트':[['워킹 런지','8~10회',1,60,''],['덤벨 스텝업','8~10회',1,60,'']]
+};
+const josa=n=>{const c=String(n).charCodeAt(String(n).length-1);return(c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28!==0)?'과':'와';};
+const stripPair=d=>String(d||'').replace(/\s·\s[^·]*[와과] 이어서/,'');
+/* 기본 루틴(rt)의 i번째 동작에 쓸 수 있는 대체 후보 (같은 루틴에 이미 있는 동작은 뺌) */
+function altList(rt,i){
+  if(!rt||rt.type!=='strength'||!rt.steps[i])return [];
+  const names=rt.steps.map(x=>x.n);
+  return(ALTS[rt.steps[i].n]||[]).filter(a=>names.indexOf(a[0])<0);
+}
+function altStep(base,a){
+  const sets=((base.d||'').match(/^(\d+)세트/)||[])[1];
+  const st={n:a[0],d:(sets?sets+'세트 × ':'')+(a[2]===1?'좌우 ':'')+a[1]+(a[4]?' · '+a[4]:''),rp:a[1],est:a[3]||base.est,alt:true,orig:base.n};
+  if(a[2]===1)st.per='좌우 각각';else if(a[2]===2)st.per='한 다리씩';
+  return st;
+}
+/* map = {동작 번호: 대체 동작 이름}. 대체한 동작은 같은 자리·같은 세트 수로 바뀌고, 짝 동작의 '이어서' 안내도 새 이름으로 */
+function swapView(rt,map){
+  if(!rt||rt.type!=='strength'||!map)return rt;
+  const steps=rt.steps.slice();let any=false;
+  Object.keys(map).forEach(k=>{
+    if(!map[k])return;const i=+k,a=altList(rt,i).find(x=>x[0]===map[k]);
+    if(!a)return;steps[i]=altStep(rt.steps[i],a);any=true;
+  });
+  if(!any)return rt;
+  rt.blocks.forEach(b=>{
+    if(b.i.length!==2)return;
+    const [x,y]=b.i;if(!steps[x].alt&&!steps[y].alt)return;
+    steps[x]=Object.assign({},steps[x],{d:stripPair(steps[x].d)+' · '+steps[y].n+josa(steps[y].n)+' 이어서'});
+    steps[y]=Object.assign({},steps[y],{d:stripPair(steps[y].d)+' · '+steps[x].n+josa(steps[x].n)+' 이어서'});
+  });
+  return Object.assign({},rt,{steps});
+}
+let SWAPS=(()=>{const v=store.get('swap',{});return v&&typeof v==='object'?v:{};})();
+function setSwap(rt,i,val){
+  const m=Object.assign({},SWAPS[rt.id]||{});
+  if(val)m[i]=val;else delete m[i];
+  if(Object.keys(m).length)SWAPS[rt.id]=m;else delete SWAPS[rt.id];
+  store.set('swap',SWAPS);
+}
+const runView=(rt,sv)=>rt.type==='strength'?withOrder(swapView(rt,(sv&&sv.swap)||SWAPS[rt.id]||{}),sv&&sv.border):view(rt);
 /* 운동 순서 바꾸기: border = 원래 블록 번호를 실제 순서대로 나열한 배열 */
 function withOrder(v,border){
   if(!v||v.type!=='strength'||!Array.isArray(border))return v;
@@ -723,7 +822,7 @@ function withOrder(v,border){
   return Object.assign({},v,{blocks:border.map(i=>Object.assign({},v.blocks[i],{o:i}))});
 }
 function view(rt){
-  if(rt.type==='strength')return rt;
+  if(rt.type==='strength')return swapView(rt,SWAPS[rt.id]);
   const k=LEN[settings.len]||1;
   return k===1?rt:Object.assign({},rt,{steps:rt.steps.map(st=>scaleStep(st,k))});
 }
@@ -793,7 +892,7 @@ function warmDefault(st,seg,sid){
   return{w:fit(W*f),r:rr,hint:'지난번 작업 '+fmtW(W)+'kg의 약 '+Math.round(f*100)+'%',up:false};
 }
 /* 바벨 원판 계산: 총 무게 - 빈 바 를 반으로 나눠 한쪽에 끼울 원판을 큰 것부터 채움 */
-const BARBELL=/^(백스쿼트|벤치프레스|데드리프트|루마니안 데드리프트|힙 쓰러스트)$/;
+const BARBELL=/^(백스쿼트|벤치프레스|데드리프트|루마니안 데드리프트|힙 쓰러스트|프론트 스쿼트|스모 데드리프트|랙 풀|클로즈그립 벤치프레스|글루트 브릿지 \(바벨\)|바벨 .+)$/;
 function plateText(w){
   const bar=settings.bar;
   if(!(w>0)||!(bar>0))return '';
@@ -1121,7 +1220,7 @@ function savedRun(){
 function paintResume(){
   const s=savedRun(),box=$('#resume');
   if(!s){box.hidden=true;return;}
-  const rt=byId[s.rid],segs=buildSegments(withOrder(view(rt),s.border)),seg=segs[Math.min(Math.max(0,s.idx|0),segs.length-1)];
+  const rt=byId[s.rid],segs=buildSegments(runView(rt,s)),seg=segs[Math.min(Math.max(0,s.idx|0),segs.length-1)];
   if(!seg){box.hidden=true;return;}
   const st=rt.steps[seg.step];
   let info=st.n;
@@ -1175,6 +1274,22 @@ function openPreview(rt,fromPop){
   paintPreview();
   show('preview');
 }
+/* 대체 동작 고르기 목록: cur=지금 고른 이름(없으면 기본), pick(이름|'') */
+function altPicker(base,i,cur,pick){
+  const wrap=document.createElement('div');wrap.className='alt-pick';
+  const mk=(label,sub,val)=>{
+    const b=document.createElement('button');b.type='button';
+    b.setAttribute('aria-pressed',String((cur||'')===val));
+    b.textContent=label;
+    if(sub){const sm=document.createElement('small');sm.textContent=sub;b.appendChild(sm);}
+    b.addEventListener('click',()=>pick(val));
+    wrap.appendChild(b);
+  };
+  mk(base.steps[i].n+' (기본)',base.steps[i].d.replace(/\s·\s[^·]*[와과] 이어서/,''),'');
+  altList(base,i).forEach(a=>mk(a[0],altStep(base.steps[i],a).d.replace(/^\d+세트 × /,''),a[0]));
+  return wrap;
+}
+const altOpen=new Set();
 function paintPreview(){
   const rt=current,v=view(rt);
   const cnt=shownSteps(rt).length,off=rt.steps.length-cnt;
@@ -1198,8 +1313,17 @@ function paintPreview(){
     const box=document.createElement('div');
     const nm=document.createElement('span');nm.className='st-name';nm.textContent=st.n;
     if(st.pnf){const bd=document.createElement('span');bd.className='badge';bd.textContent='PNF';nm.appendChild(bd);}
+    if(st.alt){const bd=document.createElement('span');bd.className='badge alt';bd.textContent='대체';nm.appendChild(bd);}
     const dt=document.createElement('span');dt.className='st-detail';dt.textContent=isOff?'뺀 동작':st.d;
     box.appendChild(nm);box.appendChild(dt);
+    if(rt.type==='strength'&&!editing&&!isOff&&altList(rt,i).length){
+      const ab=document.createElement('button');ab.type='button';ab.className='alt-btn';
+      const op=altOpen.has(rt.id+i);
+      ab.textContent='대체 동작 ▾';ab.setAttribute('aria-expanded',String(op));
+      ab.addEventListener('click',()=>{if(op)altOpen.delete(rt.id+i);else altOpen.add(rt.id+i);paintPreview();});
+      box.appendChild(ab);
+      if(op)box.appendChild(altPicker(rt,i,(SWAPS[rt.id]||{})[i],val=>{setSwap(rt,i,val);altOpen.delete(rt.id+i);paintPreview();renderHome();}));
+    }
     let ctl;
     if(editing){
       ctl=document.createElement('label');ctl.className='toggle';
@@ -1346,7 +1470,7 @@ function persist(){
   if(!R||!R.active)return;
   const w=Date.now(),p=performance.now();
   store.set('run',{rid:R.base.id,sid:R.sid,idx:R.idx,segStart:w-(p-R.segStart),started:w-(p-R.startedAt),pausedTotal:R.pausedTotal||0,
-    paused:!!R.paused,pauseRemain:R.paused?R.pauseRemain:0,savedAt:w,border:R.border||null});
+    paused:!!R.paused,pauseRemain:R.paused?R.pauseRemain:0,savedAt:w,border:R.border||null,swap:R.swap||null});
 }
 function clearRun(){try{localStorage.removeItem('stretch-timer:run');}catch(e){}}
 function enterSegment(announce){
@@ -1466,7 +1590,7 @@ function deferBlock(){
   const info=deferInfo();if(!info)return false;
   const bl=R.rt.blocks,arr=bl.map((b,i)=>blkOf(b,i));
   const cur=arr.splice(info.pos,1)[0];arr.splice(info.nx,0,cur);
-  R.rt=withOrder(R.base,arr);R.border=arr;
+  R.rt=withOrder(swapView(R.base,R.swap),arr);R.border=arr;
   const segs=buildSegments(R.rt),cum=[];let acc=0;
   segs.forEach((g,i)=>{cum[i]=acc;acc+=segW(g);});
   const posOf=o=>R.rt.blocks.findIndex((b,i)=>blkOf(b,i)===o);
@@ -1572,7 +1696,7 @@ pipVid.addEventListener('webkitpresentationmodechanged',()=>{if(pipVid.webkitPre
 if(pipSupported())pipBtn.hidden=false;
 pipBtn.addEventListener('click',()=>{if(pip.on)pipStop();else pipStart();});
 function startRoutine(rt,fromStep,replace,restore){
-  const v=withOrder(view(rt),restore&&restore.border),segs=buildSegments(v);
+  const v=runView(rt,restore),segs=buildSegments(v);
   if(!segs.length)return;
   ensureAudio();
   current=rt;
@@ -1582,7 +1706,7 @@ function startRoutine(rt,fromStep,replace,restore){
   unbook();
   const cum=[];let acc=0;
   segs.forEach((s,i)=>{cum[i]=acc;acc+=segW(s);});
-  R={rt:v,base:rt,border:(restore&&v!==view(rt)&&Array.isArray(restore.border))?restore.border:null,segs,cum,total:acc,idx:0,active:true,paused:false,pausedTotal:0,back:(restore&&!replace)?-1:-2,sid:(restore&&restore.sid)||Date.now()};
+  R={rt:v,base:rt,border:(restore&&rt.blocks&&withOrder(rt,restore.border)!==rt)?restore.border:null,swap:Object.assign({},(restore&&restore.swap)||SWAPS[rt.id]||{}),segs,cum,total:acc,idx:0,active:true,paused:false,pausedTotal:0,back:(restore&&!replace)?-1:-2,sid:(restore&&restore.sid)||Date.now()};
   const mark=v.type==='strength'?'set':'prep';
   R.order=[];segs.forEach(s=>{if(s.type===mark&&R.order.indexOf(s.step)<0)R.order.push(s.step);});
   let si=segs.findIndex(s=>s.type===mark&&(s.step>=(fromStep||0)||(s.step2!=null&&s.step2>=(fromStep||0))));if(si<0)si=0;
@@ -1690,6 +1814,15 @@ function paintRec(){
       r.firstChild.textContent=fmtDay(x.t);r.lastChild.textContent=setsText(x.sets);
       li.appendChild(r);
     });
+    (ALTS[st.n]||[]).forEach(al=>{
+      const aa=(LOG[rt.id+'·'+al[0]]||[]).filter(x=>x.sets&&x.sets.length&&!(rt.id===(R.base&&R.base.id)&&x.t===R.sid)).slice(-1);
+      aa.forEach(x=>{
+        const r=document.createElement('div');r.className='rec';
+        r.innerHTML='<span class="rd"></span><span></span>';
+        r.firstChild.textContent=fmtDay(x.t);r.lastChild.textContent='↳ '+al[0]+' · '+setsText(x.sets);
+        li.appendChild(r);
+      });
+    });
     ul.appendChild(li);
   });
   box.appendChild(ul);
@@ -1725,11 +1858,29 @@ function fillDetail(box,st,s,state,f){
     r.firstChild.textContent=fmtDay(x.t);r.lastChild.textContent=setsText(x.sets);
     box.appendChild(r);
   });
+  const bi=R.base.steps.findIndex((x,j)=>j===s);
+  if(bi>=0&&altList(R.base,bi).length){
+    const h3=document.createElement('h4');h3.textContent='대체 동작';box.appendChild(h3);
+    box.appendChild(altPicker(R.base,bi,R.swap[bi],val=>swapInRun(bi,val)));
+  }
   if(state!=='cur'){
     const g=document.createElement('button');g.type='button';g.className='go';g.textContent='이 동작으로 이동';
     g.addEventListener('click',()=>{closeList();jump(f);});
     box.appendChild(g);
   }
+}
+function swapInRun(i,val){
+  if(!R||!R.active)return;
+  if(val)R.swap[i]=val;else delete R.swap[i];
+  R.rt=withOrder(swapView(R.base,R.swap),R.border);
+  const segs=buildSegments(R.rt),cum=[];let acc=0;
+  segs.forEach((g,k)=>{cum[k]=acc;acc+=segW(g);});
+  const keep=Math.min(R.idx,segs.length-1);
+  R.segs=segs;R.cum=cum;R.total=acc;
+  R.order=[];segs.forEach(g=>{if(g.type==='set'&&R.order.indexOf(g.step)<0)R.order.push(g.step);});
+  R.idx=keep;
+  paintSegment();persist();paintList();
+  toast(val?'대체 동작으로 바꿨어요':'기본 동작으로 돌렸어요');
 }
 function paintList(){
   const strength=R.rt.type==='strength',body=$('#tListBody');body.innerHTML='';
