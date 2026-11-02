@@ -370,7 +370,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v48</p>
+    <p class="ver">앱 버전 v49</p>
   </div></details>
 </main>
 
@@ -445,7 +445,7 @@ svg[hidden]{display:none}
 <video id="pipVid" muted playsinline aria-hidden="true"></video>
 <div id="zoom" class="zoom" hidden><img id="zoomImg" alt=""></div>
 
-<script src="images.js?v=25"></script>
+<script src="images.js?v=26"></script>
 <script>
 (function(){
 'use strict';
@@ -666,6 +666,31 @@ const ROUTINES=[
 ],blocks:[
  {i:[0],sets:4,rest:120},{i:[1],sets:3,rest:90},{i:[2,3],sets:3,rest:90},
  {i:[4,5],sets:3,rest:60},{i:[6,7],sets:3,rest:60},{i:[8,9],sets:2,rest:60},{i:[10,11],sets:3,rest:60},{i:[12,13],sets:3,rest:45}
+]},
+{id:'bodyA',cell:'맨몸 전신 A',title:'맨몸 전신 A (하체·어깨)',mode:'strength',focus:'기구 없이 둔근·하체 라인과 어깨 앞·옆면, 약 16세트. 의자 하나만 있으면 돼요',type:'strength',steps:[
+ {n:'템포 스쿼트',d:'4세트 × 12~15회 · 3초 동안 천천히 내려가기',rp:'12~15회',est:50},
+ {n:'맨몸 불가리안 스플릿 스쿼트',d:'3세트 × 좌우 8~12회 · 뒷발을 의자에 · 한 다리 힙 브릿지와 이어서',rp:'8~12회',per:'좌우 각각',est:60},
+ {n:'한 다리 힙 브릿지',d:'3세트 × 좌우 12~15회',rp:'12~15회',per:'좌우 각각',est:55},
+ {n:'클램쉘',d:'3세트 × 좌우 15~20회 · 사이드라잉 힙 어브덕션과 이어서',rp:'15~20회',per:'좌우 각각',est:50},
+ {n:'사이드라잉 힙 어브덕션',d:'3세트 × 좌우 15~20회',rp:'15~20회',per:'좌우 각각',est:50},
+ {n:'파이크 푸시업',d:'3세트 × 6~10회 · 플랭크 숄더 탭과 이어서',rp:'6~10회',est:45},
+ {n:'플랭크 숄더 탭',d:'3세트 × 좌우 10~12회',rp:'10~12회',per:'좌우 각각',est:45},
+ {n:'월 엔젤',d:'3세트 × 12~15회 · 한다리 카프 레이즈와 이어서',rp:'12~15회',est:40},
+ {n:'한다리 카프 레이즈',d:'3세트 × 8~12회',rp:'8~12회',per:'한 다리씩',est:50}
+],blocks:[
+ {i:[0],sets:4,rest:90},{i:[1,2],sets:3,rest:60},{i:[3,4],sets:3,rest:45},{i:[5,6],sets:3,rest:60},{i:[7,8],sets:3,rest:45}
+]},
+{id:'bodyB',cell:'맨몸 전신 B',title:'맨몸 전신 B (둔근·등)',mode:'strength',focus:'기구 없이 둔근·햄스트링과 어깨 뒤쪽·등, 약 17세트. 의자 하나만 있으면 돼요',type:'strength',steps:[
+ {n:'한 다리 힙 힌지',d:'4세트 × 좌우 8~12회 · 맨몸 루마니안 데드리프트',rp:'8~12회',per:'좌우 각각',est:55},
+ {n:'의자 힙 쓰러스트',d:'4세트 × 12~15회 · 등 윗부분을 의자에',rp:'12~15회',est:45},
+ {n:'의자 스텝업',d:'3세트 × 좌우 10~12회 · 사이드 런지와 이어서',rp:'10~12회',per:'좌우 각각',est:55},
+ {n:'사이드 런지',d:'3세트 × 좌우 8~10회',rp:'8~10회',per:'좌우 각각',est:55},
+ {n:'슈퍼맨',d:'3세트 × 12~15회 · 엎드려 Y-T 레이즈와 이어서',rp:'12~15회',est:40},
+ {n:'엎드려 Y-T 레이즈',d:'3세트 × 10~12회',rp:'10~12회',est:40},
+ {n:'인클라인 푸시업 (의자)',d:'3세트 × 8~12회 · 데드버그와 이어서',rp:'8~12회',est:40},
+ {n:'데드버그',d:'3세트 × 좌우 10~12회',rp:'10~12회',per:'좌우 각각',est:45}
+],blocks:[
+ {i:[0],sets:4,rest:90},{i:[1],sets:4,rest:90},{i:[2,3],sets:3,rest:60},{i:[4,5],sets:3,rest:45},{i:[6,7],sets:3,rest:45}
 ]}
 ];
 const GROUPS=[
@@ -676,15 +701,16 @@ const GROUPS=[
  {tab:'stretch',name:'전신 근력',ids:['fullPre','fullPost']},
  {tab:'strength',name:'상체 근력',ids:['upperA','upperB']},
  {tab:'strength',name:'하체 근력',ids:['lowerA','lowerB']},
- {tab:'strength',name:'전신 근력',ids:['fullA','fullB']}
+ {tab:'strength',name:'전신 근력',ids:['fullA','fullB']},
+ {tab:'strength',name:'맨몸 전신',ids:['bodyA','bodyB']}
 ];
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
-const IMG_VERSION='25';
+const IMG_VERSION='26';
 const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
 const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
 const ALT_IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_ALT_IMAGES)||{};
 let BYNAME=null;
-const imgGroup=rid=>(rid==='fullA'||rid==='fullB')?'f':'m';
+const imgGroup=rid=>(rid==='fullA'||rid==='fullB'||rid==='bodyA'||rid==='bodyB')?'f':'m';
 function byName(){
   if(BYNAME)return BYNAME;
   BYNAME={m:{},f:{}};
@@ -696,7 +722,7 @@ function byName(){
   return BYNAME;
 }
 const altImg=(rid,name)=>{const g=imgGroup(rid);return ALT_IMGS[g+':'+name]||byName()[g][name]||'';};
-const imgFor=(rt,i)=>{const st=rt.steps[i];if(st&&st.alt)return altImg(rt.id,st.n);return (imgOk(rt)&&IMGS[rt.id][i])||(st?(ALT_IMGS[imgGroup(rt.id)+':'+st.n]||''):'');};
+const imgFor=(rt,i)=>{const st=rt.steps[i];if(st&&st.alt)return altImg(rt.id,st.n);return (imgOk(rt)&&IMGS[rt.id][i])||(st?altImg(rt.id,st.n):'');};
 const SWITCH_SEC=5;
 const CIRC=2*Math.PI*88;
 
@@ -755,6 +781,13 @@ const ALTS={
  '페이스풀':[['덤벨 슈러그','10~12회',0,40,''],['사이드라이 덤벨 외회전','12~15회',1,50,'가벼운 무게']],
  '팔로프 프레스':[['데드버그','8~12회',1,45,''],['버드독','10~12회',1,45,'']],
  '케이블 원암 트라이셉스 푸시다운':[['덤벨 오버헤드 트라이셉스 익스텐션','10~12회',0,45,''],['덤벨 킥백','12~15회',1,45,''],['케이블 원암 리버스 플라이','12~15회',1,60,'원래 동작']],
+ '템포 스쿼트':[['의자 박스 스쿼트','12~15회',0,45,'앉았다 일어나기']],
+ '맨몸 불가리안 스플릿 스쿼트':[['워킹 런지','8~10회',1,60,'']],
+ '한 다리 힙 브릿지':[['글루트 브릿지','15~20회',0,40,'두 발']],
+ '파이크 푸시업':[['인클라인 푸시업 (의자)','8~12회',0,40,'']],
+ '인클라인 푸시업 (의자)':[['파이크 푸시업','6~10회',0,45,'']],
+ '슈퍼맨':[['버드독','10~12회',1,45,'']],
+ '데드버그':[['버드독','10~12회',1,45,''],['행잉 레그 레이즈','10~15회',0,45,'']],
  '덤벨 슈러그':[['덤벨 리어 델트 플라이','12~15회',0,45,'원래 동작'],['덤벨 업라이트 로우','10~12회',0,40,'']],
  '덤벨 Y 레이즈':[['덤벨 리어 델트 플라이','12~15회',0,45,'원래 동작'],['케이블 원암 레터럴 레이즈','12~15회',1,60,'낮은 풀리']],
  '랫풀다운':[['풀업','5~8회',0,40,'어시스트 사용 가능'],['케이블 원암 랫풀다운','8~10회',1,55,'']],
@@ -843,8 +876,9 @@ function pnfPattern(T){
   ];
 }
 /* 운동 기록: 상체·하체 A/B 루틴만 (무게·횟수, 마지막 수행일) */
-const LOGGED={upperA:1,upperB:1,lowerA:1,lowerB:1,fullA:1,fullB:1},FULLRT={fullA:1,fullB:1};
-const CYCLES=[['upperA','lowerA','upperB','lowerB'],['fullA','fullB']];
+const LOGGED={upperA:1,upperB:1,lowerA:1,lowerB:1,fullA:1,fullB:1,bodyA:1,bodyB:1},FULLRT={fullA:1,fullB:1};
+const BW={bodyA:1,bodyB:1};   /* 맨몸 루틴: 무게·워밍업 없이 횟수만 기록 */
+const CYCLES=[['upperA','lowerA','upperB','lowerB'],['fullA','fullB'],['bodyA','bodyB']];
 /* 기록 이름표: 루틴별로 따로 보관 (같은 이름 동작도 루틴마다 기록이 따로 쌓임) */
 const lk=st=>(R&&R.base?R.base.id:'')+'·'+st.n;
 const logOn=rt=>!!(rt&&LOGGED[rt.id]);
@@ -871,6 +905,15 @@ function logDefault(st,setNo,setTotal,sid){
   const [lo,hi]=repRange(st.rp),step=wStep(st.n);
   const cur=thisSession(lk(st),sid),done=cur&&cur.sets.find(x=>x.n===setNo);
   const prev=lastSession(lk(st),sid);
+  if(R&&R.base&&BW[R.base.id]){
+    const c=cur&&cur.sets.length?cur.sets[cur.sets.length-1]:null;
+    if(done)return{w:0,r:done.r,hint:'',up:false};
+    if(c)return{w:0,r:c.r,hint:prev?'지난번 '+prev.sets.map(x=>x.r+'회').join(' · '):'',up:false};
+    if(!prev||!prev.sets.length)return{w:0,r:hi,hint:'처음이에요. 목표 횟수에서 시작하세요',up:false};
+    const ok=prev.sets.length>=setTotal&&prev.sets.every(x=>x.r>=hi);
+    const sm=prev.sets[Math.min(setNo,prev.sets.length)-1];
+    return{w:0,r:ok?hi:sm.r,hint:ok?'지난번 전 세트 '+hi+'회 달성 → 템포를 느리게 하거나 한 단계 어려운 동작으로':'지난번 '+prev.sets.map(x=>x.r+'회').join(' · '),up:ok};
+  }
   let hint='',up=false;
   if(prev&&prev.sets.length){
     hint='지난번 '+prev.sets.map(x=>fmtW(x.w)+'×'+x.r).join(' · ');
@@ -929,6 +972,7 @@ function logRow(st,i,seg,label){
   if(label){const b=document.createElement('i');b.textContent=label;n.appendChild(b);n.appendChild(document.createTextNode(st.n));}else n.textContent=seg.warm?'워밍업 · 가볍게':st.rp+(st.per?' · '+st.per:'');
   row.querySelector('.lg-t').textContent=label?st.rp+(st.per?' · '+st.per:''):(seg.warm?'':'목표');
   row.querySelector('.lg-w').value=fmtW(d.w);row.querySelector('.lg-r').value=d.r;
+  if(R&&R.base&&BW[R.base.id]){const wc=row.querySelector('.lg-c[data-k="w"]');if(wc)wc.hidden=true;}
   const h=row.querySelector('.lg-h');h.textContent=d.hint;h.classList.toggle('up',d.up);h.hidden=!d.hint;
   row.querySelectorAll('.lg-c button').forEach(b=>b.addEventListener('click',()=>{
     const wrap=b.parentNode,inp=wrap.querySelector('input'),dir=+b.dataset.d;
@@ -995,7 +1039,7 @@ function buildStrength(rt){
     for(let n=1;n<=b.sets&&ids.length;n++)seq.push({i:ids[0],i2:ids.length>1?ids[1]:null,n,total:b.sets,rest:b.rest,blk:o});
   });
   /* 기록하는 루틴은 첫 운동 앞에 워밍업 3세트(가볍게 → 작업 무게 근처)를 일반 세트처럼 둔다 */
-  if(logOn(rt)&&seq.length&&seq[0].i2==null){
+  if(logOn(rt)&&!BW[rt.id]&&seq.length&&seq[0].i2==null){
     const w=[];for(let n=1;n<=3;n++)w.push({i:seq[0].i,i2:null,n,total:3,rest:60,warm:true,blk:seq[0].blk});
     seq.unshift.apply(seq,w);
   }
@@ -1316,7 +1360,8 @@ function paintPreview(){
   const ed=$('#pvEdit');ed.textContent=editing?'완료':'동작 빼기';ed.setAttribute('aria-pressed',String(editing));
   $('#pvEditNote').hidden=!editing;$('#pvRestore').hidden=!off;
   const list=$('#pvList');list.innerHTML='';
-  list.classList.toggle('has-img',imgOk(v));
+  const anyImg=v.steps.some((x,j)=>imgFor(v,j));
+  list.classList.toggle('has-img',anyImg);
   list.classList.toggle('editing',editing);
   let k=0;
   v.steps.forEach((st,i)=>{
@@ -1355,7 +1400,7 @@ function paintPreview(){
     const src=imgFor(v,i);
     li.appendChild(no);
     if(src){const th=document.createElement('img');th.className='thumb';th.src=src;th.alt='';th.loading='lazy';li.appendChild(th);}
-    else if(imgOk(v)){const ph=document.createElement('div');ph.className='thumb';li.appendChild(ph);}
+    else if(anyImg){const ph=document.createElement('div');ph.className='thumb';li.appendChild(ph);}
     li.appendChild(box);li.appendChild(ctl);
     list.appendChild(li);
   });
