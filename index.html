@@ -129,6 +129,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .alt-pick{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .alt-pick button{text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 12px;font:500 13.5px/1.35 var(--ui);cursor:pointer}
 .alt-pick button[aria-pressed="true"]{border-color:var(--ink);font-weight:700}
+.alt-keep{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;color:var(--muted)}
 .alt-pick small{display:block;color:var(--muted);font-weight:400;font-size:12px}
 .badge.alt{color:var(--muted)}
 .badge{display:inline-block;font-size:11px;font-weight:700;color:var(--contract);border:1px solid currentColor;border-radius:5px;padding:0 5px;margin-left:6px;vertical-align:1px;line-height:1.5}
@@ -366,7 +367,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v46</p>
+    <p class="ver">앱 버전 v47</p>
   </div></details>
 </main>
 
@@ -406,6 +407,7 @@ svg[hidden]{display:none}
     <div id="tDots" class="dots" hidden aria-hidden="true"><i></i><i></i><i></i></div>
     <button type="button" id="tSetDone" class="set-done" hidden>세트 완료</button>
     <button type="button" id="tDefer" class="defer" hidden>기구가 사용 중이에요 · 다음 순서로 넘기기</button>
+    <button type="button" id="tSwap" class="defer" hidden>동작 바꾸기 (대체 동작)</button>
   </div>
   <p id="tNext" class="next"></p>
   <div class="t-controls">
@@ -872,7 +874,11 @@ function logDefault(st,setNo,setTotal,sid){
   }
   if(done)return{w:done.w,r:done.r,hint,up};
   if(cur&&cur.sets.length){const l=cur.sets[cur.sets.length-1];return{w:l.w,r:l.r,hint,up};}
-  if(!prev||!prev.sets.length)return{w:0,r:hi,hint:'처음이에요. 무게를 입력하세요',up};
+  if(!prev||!prev.sets.length){
+    const ob=st.alt&&R&&R.base?lastSession(R.base.id+'·'+st.orig,sid):null;
+    if(ob)return{w:0,r:hi,hint:st.orig+' 지난번 '+ob.sets.map(x=>fmtW(x.w)+'×'+x.r).join(' · ')+' · 무게는 새로 정하세요',up};
+    return{w:0,r:hi,hint:'처음이에요. 무게를 입력하세요',up};
+  }
   const maxW=Math.max.apply(null,prev.sets.map(x=>x.w));
   if(prev.sets.length>=setTotal&&prev.sets.every(x=>x.r>=hi)&&maxW>0)
     return{w:maxW+step,r:lo,hint:'지난번 전 세트 '+hi+'회 달성 → +'+fmtW(step)+'kg 올려보기',up:true};
@@ -1290,6 +1296,7 @@ function altPicker(base,i,cur,pick){
   return wrap;
 }
 const altOpen=new Set();
+let swapKeep=true;
 function paintPreview(){
   const rt=current,v=view(rt);
   const cnt=shownSteps(rt).length,off=rt.steps.length-cnt;
@@ -1450,6 +1457,11 @@ function paintSegment(){
   paintLog(seg);$('#tNext').textContent=nextText();
   const sd=$('#tSetDone');sd.hidden=seg.type!=='set';sd.textContent=seg.last?'마지막 세트 완료':'세트 완료';
   $('#tDefer').hidden=!deferInfo();
+  $('#tSwap').hidden=!swapAvail(seg);
+}
+function swapAvail(seg){
+  if(!R||!R.base||R.base.type!=='strength'||!seg)return false;
+  return altList(R.base,seg.step).length>0||(seg.step2!=null&&altList(R.base,seg.step2).length>0);
 }
 function cueVoice(seg,st){
   if(seg.type==='set'&&seg.step2!=null){const b=R.rt.steps[seg.step2];say(speakName(st.n)+', 이어서 '+speakName(b.n)+', '+seg.setNo+'세트');return;}
@@ -1766,6 +1778,7 @@ $('#tPrev').addEventListener('click',goPrev);
 $('#tSkip').addEventListener('click',goSkip);
 $('#tSetDone').addEventListener('click',setDone);
 $('#tDefer').addEventListener('click',deferBlock);
+$('#tSwap').addEventListener('click',()=>openList(true));
 /* 전체 루틴 보기: 운동을 끝내지 않고 목록을 열어 보고, 원하는 동작으로 바로 이동 */
 let listClosing=false;
 function stepRange(s){
@@ -1862,6 +1875,11 @@ function fillDetail(box,st,s,state,f){
   if(bi>=0&&altList(R.base,bi).length){
     const h3=document.createElement('h4');h3.textContent='대체 동작';box.appendChild(h3);
     box.appendChild(altPicker(R.base,bi,R.swap[bi],val=>swapInRun(bi,val)));
+    const kl=document.createElement('label');kl.className='alt-keep';
+    const kc=document.createElement('input');kc.type='checkbox';kc.checked=swapKeep;
+    kc.addEventListener('change',()=>{swapKeep=kc.checked;});
+    kl.appendChild(kc);kl.appendChild(document.createTextNode(' 다음 운동에도 이 동작으로'));
+    box.appendChild(kl);
   }
   if(state!=='cur'){
     const g=document.createElement('button');g.type='button';g.className='go';g.textContent='이 동작으로 이동';
@@ -1872,6 +1890,7 @@ function fillDetail(box,st,s,state,f){
 function swapInRun(i,val){
   if(!R||!R.active)return;
   if(val)R.swap[i]=val;else delete R.swap[i];
+  if(swapKeep)setSwap(R.base,i,val);
   R.rt=withOrder(swapView(R.base,R.swap),R.border);
   const segs=buildSegments(R.rt),cum=[];let acc=0;
   segs.forEach((g,k)=>{cum[k]=acc;acc+=segW(g);});
@@ -1934,9 +1953,10 @@ function paintList(){
   });
   return curEl;
 }
-function openList(){
+function openList(expandCur){
   if(!R||!R.active||!$('#tList').hidden||!$('#tConfirm').hidden)return;
   listOpen=new Set();
+  if(expandCur){const g=R.segs[R.idx];if(g){listOpen.add(g.step);if(g.step2!=null)listOpen.add(g.step2);}}
   const cur=paintList();
   $('#tList').hidden=false;setListMode('now');
   history.pushState({s:'list'},'');
@@ -1946,7 +1966,7 @@ function closeList(){
   if($('#tList').hidden)return;
   $('#tList').hidden=true;listClosing=true;history.back();
 }
-$('#tStepBtn').addEventListener('click',openList);
+$('#tStepBtn').addEventListener('click',()=>openList());
 $('#tabNow').addEventListener('click',()=>setListMode('now'));
 $('#tabRec').addEventListener('click',()=>setListMode('rec'));
 $('#tListClose').addEventListener('click',closeList);
