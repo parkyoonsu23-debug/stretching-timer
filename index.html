@@ -127,7 +127,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--contract);outli
 .alt-btn{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:4px 10px;font:600 12px/1.2 var(--ui);cursor:pointer;margin-top:6px}
 .alt-btn[aria-expanded="true"]{color:var(--ink);border-color:var(--ink)}
 .alt-pick{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-.alt-pick button{text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:9px 12px;font:500 13.5px/1.35 var(--ui);cursor:pointer}
+.alt-pick button,.sl .dtl .alt-pick button{display:flex;align-items:center;gap:10px;width:100%;grid-template-columns:none;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:7px 10px;font:500 13.5px/1.35 var(--ui);cursor:pointer}
+.alt-pick .ap-im{flex:0 0 52px;width:52px;height:52px;object-fit:contain;background:#fff;border-radius:8px}
+.alt-pick .ap-ph{flex:0 0 52px;width:52px;height:52px;border-radius:8px;background:var(--prep-soft)}
+.alt-pick .ap-tx{flex:1;min-width:0}
 .alt-pick button[aria-pressed="true"]{border-color:var(--ink);font-weight:700}
 .alt-keep{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;color:var(--muted)}
 .alt-pick small{display:block;color:var(--muted);font-weight:400;font-size:12px}
@@ -367,7 +370,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v47</p>
+    <p class="ver">앱 버전 v48</p>
   </div></details>
 </main>
 
@@ -1283,16 +1286,19 @@ function openPreview(rt,fromPop){
 /* 대체 동작 고르기 목록: cur=지금 고른 이름(없으면 기본), pick(이름|'') */
 function altPicker(base,i,cur,pick){
   const wrap=document.createElement('div');wrap.className='alt-pick';
-  const mk=(label,sub,val)=>{
+  const mk=(label,sub,val,src)=>{
     const b=document.createElement('button');b.type='button';
     b.setAttribute('aria-pressed',String((cur||'')===val));
-    b.textContent=label;
-    if(sub){const sm=document.createElement('small');sm.textContent=sub;b.appendChild(sm);}
+    if(src){const im=document.createElement('img');im.className='ap-im';im.src=src;im.alt='';im.loading='lazy';b.appendChild(im);}
+    else{const ph=document.createElement('span');ph.className='ap-ph';b.appendChild(ph);}
+    const tx=document.createElement('span');tx.className='ap-tx';tx.appendChild(document.createTextNode(label));
+    if(sub){const sm=document.createElement('small');sm.textContent=sub;tx.appendChild(sm);}
+    b.appendChild(tx);
     b.addEventListener('click',()=>pick(val));
     wrap.appendChild(b);
   };
-  mk(base.steps[i].n+' (기본)',base.steps[i].d.replace(/\s·\s[^·]*[와과] 이어서/,''),'');
-  altList(base,i).forEach(a=>mk(a[0],altStep(base.steps[i],a).d.replace(/^\d+세트 × /,''),a[0]));
+  mk(base.steps[i].n+' (기본)',base.steps[i].d.replace(/\s·\s[^·]*[와과] 이어서/,''),'',imgFor(base,i));
+  altList(base,i).forEach(a=>mk(a[0],altStep(base.steps[i],a).d.replace(/^\d+세트 × /,''),a[0],altImg(base.id,a[0])));
   return wrap;
 }
 const altOpen=new Set();
