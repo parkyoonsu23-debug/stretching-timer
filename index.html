@@ -370,7 +370,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v49</p>
+    <p class="ver">앱 버전 v50</p>
   </div></details>
 </main>
 
@@ -445,7 +445,7 @@ svg[hidden]{display:none}
 <video id="pipVid" muted playsinline aria-hidden="true"></video>
 <div id="zoom" class="zoom" hidden><img id="zoomImg" alt=""></div>
 
-<script src="images.js?v=26"></script>
+<script src="images.js?v=27"></script>
 <script>
 (function(){
 'use strict';
@@ -705,7 +705,7 @@ const GROUPS=[
  {tab:'strength',name:'맨몸 전신',ids:['bodyA','bodyB']}
 ];
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
-const IMG_VERSION='26';
+const IMG_VERSION='27';
 const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
 const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
 const ALT_IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_ALT_IMAGES)||{};
