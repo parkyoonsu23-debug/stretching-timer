@@ -370,7 +370,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v50</p>
+    <p class="ver">앱 버전 v51</p>
   </div></details>
 </main>
 
@@ -445,7 +445,7 @@ svg[hidden]{display:none}
 <video id="pipVid" muted playsinline aria-hidden="true"></video>
 <div id="zoom" class="zoom" hidden><img id="zoomImg" alt=""></div>
 
-<script src="images.js?v=27"></script>
+<script src="images.js?v=28"></script>
 <script>
 (function(){
 'use strict';
@@ -705,7 +705,7 @@ const GROUPS=[
  {tab:'strength',name:'맨몸 전신',ids:['bodyA','bodyB']}
 ];
 const byId={};ROUTINES.forEach(r=>byId[r.id]=r);
-const IMG_VERSION='27';
+const IMG_VERSION='28';
 const IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_IMAGES)||{};
 const imgOk=rt=>!!(IMGS[rt.id]&&IMGS[rt.id].length===rt.steps.length);
 const ALT_IMGS=(window.STRETCH_IMAGES_VERSION===IMG_VERSION&&window.STRETCH_ALT_IMAGES)||{};
@@ -714,8 +714,8 @@ const imgGroup=rid=>(rid==='fullA'||rid==='fullB'||rid==='bodyA'||rid==='bodyB')
 function byName(){
   if(BYNAME)return BYNAME;
   BYNAME={m:{},f:{}};
-  ROUTINES.forEach(rt=>{
-    if(rt.type!=='strength'||!IMGS[rt.id])return;
+  ROUTINES.slice().sort((a,b)=>(b.type==='strength')-(a.type==='strength')).forEach(rt=>{
+    if(!IMGS[rt.id])return;
     const g=imgGroup(rt.id);
     rt.steps.forEach((st,i)=>{const im=IMGS[rt.id][i];if(im&&!BYNAME[g][st.n])BYNAME[g][st.n]=im;});
   });
@@ -816,12 +816,128 @@ const ALTS={
 const josa=n=>{const c=String(n).charCodeAt(String(n).length-1);return(c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28!==0)?'과':'와';};
 const stripPair=d=>String(d||'').replace(/\s·\s[^·]*[와과] 이어서/,'');
 /* 기본 루틴(rt)의 i번째 동작에 쓸 수 있는 대체 후보 (같은 루틴에 이미 있는 동작은 뺌) */
+/* 스트레칭 대체 동작: 기본 동작 이름 → 바꿀 수 있는 동작 이름들. 이름이 SD에 없으면 다른 스트레칭 루틴의 같은 이름 동작을 가져옴 */
+const SD={
+ '누워서 한쪽 무릎 가슴으로 당기기':{d:'좌우 {s}초',s:30,sides:LR},
+ '앉아서 캣카우':{d:'10회',s:50,reps:10},
+ '열린 책 자세 (옆으로 누워 흉추 회전)':{d:'좌우 8회',s:32,reps:8,sides:LR},
+ '누워서 피겨4 둔근 스트레칭':{d:'좌우 {s}초',s:45,sides:LR},
+ '누워서 한 다리 들어 햄스트링 스트레칭':{d:'좌우 {s}초',s:45,sides:LR,tip:'무릎은 살짝 굽혀도 돼요'},
+ '엎드려 코브라 자세':{d:'{s}초',s:30,tip:'허리가 불편하면 낮게'},
+ '엎드려 허벅지 앞 스트레칭':{d:'좌우 {s}초',s:30,sides:LR},
+ '누워서 두 무릎 가슴으로 안기':{d:'{s}초',s:30},
+ '누워서 복식호흡':{d:'{s}초',s:60,k:'breath'},
+ '앉아서 손으로 머리 눌러 목 뒤 늘리기':{d:'{s}초',s:15},
+ '앉아서 어깨 으쓱했다 내리기':{d:'10회',s:30,reps:10},
+ '앉아서 날개뼈 모으기':{d:'10회',s:30,reps:10},
+ '앉아서 피겨4 둔근 스트레칭':{d:'좌우 {s}초',s:20,sides:LR},
+ '앉아서 손가락 펴고 쥐기':{d:'10회',s:20,reps:10},
+ '앉아서 발목 돌리기':{d:'좌우 10회',s:30,reps:10,sides:LR},
+ '워킹 런지 트위스트':{d:'좌우 6회',s:48,reps:6,sides:LR},
+ '걸으며 발뒤꿈치 엉덩이로 차기':{d:'좌우 번갈아 6회씩',s:36,reps:12},
+ '제자리 가볍게 점프 뛰기':{d:'{s}초',s:30,k:'move'},
+ '사이드 런지 (옆으로 체중 옮기기)':{d:'좌우 8회',s:32,reps:8,sides:LR},
+ '벽 짚고 스캐풀라 푸시업':{d:'12회',s:36,reps:12},
+ '무릎 대고 푸시업':{d:'8회',s:24,reps:8},
+ '월 엔젤 (벽에 등 대고 팔 올렸다 내리기)':{d:'10회',s:30,reps:10},
+ '엎드려 한 팔 옆으로 뻗어 가슴 스트레칭':{d:'좌우 {s}초',s:30,sides:LR},
+ '인치웜 (손으로 걸어 나갔다 돌아오기)':{d:'8회',s:40,reps:8},
+ '다운독 자세 유지':{d:'{s}초',s:30}
+};
+const SALT={
+ '누워서 온몸 기지개':['앉아서 두 팔 위로 뻗어 기지개','누워서 한쪽 무릎 가슴으로 당기기'],
+ '누워서 두 무릎 좌우로 넘기기':['누워서 척추 비틀기','누워서 두 무릎 가슴으로 안기'],
+ '캣카우':['앉아서 캣카우','차일드 포즈'],
+ '네발 자세 흉추 회전':['열린 책 자세 (옆으로 누워 흉추 회전)','앉아서 의자 등받이 잡고 상체 비틀기'],
+ '다운독 자세에서 발 번갈아 밟기':['다운독 자세 유지','인치웜 (손으로 걸어 나갔다 돌아오기)'],
+ '한쪽 무릎 꿇고 골반 앞으로 밀었다 돌아오기':['한쪽 무릎 꿇은 고관절 앞쪽 스트레칭','서서 허벅지 앞 스트레칭 (골반 살짝 말아 넣기)'],
+ '서서 팔 뻗어 옆구리 늘리기':['앉아서 의자 등받이 잡고 상체 비틀기','앉아서 두 팔 위로 뻗어 기지개'],
+ '까치발 들었다 천천히 내리기':['까치발 들기','벽이나 나무 짚고 종아리 스트레칭 (뒷무릎 편 상태)'],
+ '앉아서 목 옆 늘리기':['앉아서 손으로 머리 눌러 목 뒤 늘리기','목 옆 늘리기'],
+ '앉아서 팔 가로질러 어깨 뒤 스트레칭':['머리 뒤 삼두 스트레칭','등 뒤로 손깍지 끼고 어깨 앞쪽 열기'],
+ '나비 자세':['앉아서 다리 넓게 벌려 앞으로 숙이기','누워서 피겨4 둔근 스트레칭'],
+ '앉아서 한 다리 펴고 발끝 잡고 숙이기':['누워서 한 다리 들어 햄스트링 스트레칭','90/90 자세로 앉아 앞다리 쪽으로 상체 숙이기'],
+ '비둘기 자세':['누워서 피겨4 둔근 스트레칭','90/90 자세로 앉아 앞다리 쪽으로 상체 숙이기'],
+ '팔 앞으로 뻗은 차일드 포즈':['누워서 두 무릎 가슴으로 안기'],
+ '차일드 포즈':['누워서 두 무릎 가슴으로 안기','엎드려 스핑크스 자세'],
+ '엎드려 스핑크스 자세':['엎드려 코브라 자세'],
+ '옆으로 누워 허벅지 앞 스트레칭':['엎드려 허벅지 앞 스트레칭','서서 허벅지 앞 스트레칭 (골반 살짝 말아 넣기)'],
+ '해피 베이비 자세':['누워서 두 무릎 가슴으로 안기','누워서 한쪽 무릎 가슴으로 당기기'],
+ '누워서 척추 비틀기':['누워서 두 무릎 좌우로 넘기기','해피 베이비 자세'],
+ '누워서 온몸 길게 늘렸다가 힘 빼기':['누워서 복식호흡','누워서 온몸 기지개'],
+ '앉아서 턱 당기기':['앉아서 어깨 으쓱했다 내리기'],
+ '앉아서 양손 머리 뒤 깍지 끼고 팔꿈치 벌려 가슴 열기':['앉아서 날개뼈 모으기','등 뒤로 손깍지 끼고 어깨 앞쪽 열기'],
+ '앉아서 의자 등받이 잡고 상체 비틀기':['앉아서 피겨4 둔근 스트레칭','앉아서 팔 가로질러 어깨 뒤 스트레칭'],
+ '앉아서 팔 앞으로 뻗어 손목 스트레칭':['앉아서 손가락 펴고 쥐기'],
+ '앉아서 두 팔 위로 뻗어 기지개':['앉아서 발목 돌리기','앉아서 피겨4 둔근 스트레칭'],
+ '까치발 들기':['까치발 들었다 천천히 내리기','앉아서 발목 돌리기'],
+ '벽 앞 발목 가동성 (무릎을 벽 쪽으로 밀기)':['깊은 스쿼트 자세에서 좌우로 체중 옮기기','까치발 들기'],
+ '레그 스윙 앞뒤 (벽 짚고)':['맨몸 굿모닝 (엉덩이 뒤로 빼며 숙이기)','걸으며 발뒤꿈치 엉덩이로 차기'],
+ '레그 스윙 좌우 (벽 짚고)':['서서 골반 돌리기 (손은 허리에)','사이드 런지 (옆으로 체중 옮기기)'],
+ '월드 그레이티스트 스트레치':['워킹 런지 트위스트','한쪽 무릎 꿇고 골반 앞으로 밀었다 돌아오기'],
+ '걸으며 무릎 가슴으로 당기기':['걸으며 발뒤꿈치 엉덩이로 차기','레그 스윙 앞뒤 (벽 짚고)'],
+ '걸으며 다리 곧게 차올리기':['워킹 런지 트위스트','맨몸 스쿼트 (천천히)'],
+ '제자리 하이니 → 버트킥':['제자리 가볍게 점프 뛰기'],
+ '벽이나 나무 짚고 종아리 스트레칭 (뒷무릎 편 상태)':['다운독 자세 유지'],
+ '벽이나 나무 짚고 종아리 스트레칭 (뒷무릎 굽힌 상태)':['다운독 자세에서 발 번갈아 밟기'],
+ '서서 허벅지 앞 스트레칭 (골반 살짝 말아 넣기)':['옆으로 누워 허벅지 앞 스트레칭','엎드려 허벅지 앞 스트레칭'],
+ '벤치에 발뒤꿈치 올린 햄스트링 스트레칭':['앉아서 한 다리 펴고 발끝 잡고 숙이기','누워서 한 다리 들어 햄스트링 스트레칭'],
+ '벤치에 앉아 다리 넓게 벌리고 숙이기':['나비 자세','앉아서 다리 넓게 벌려 앞으로 숙이기'],
+ '벤치에 앉아 피겨4 둔근 스트레칭':['누워서 피겨4 둔근 스트레칭','비둘기 자세'],
+ '벤치에 앉아 발바닥 스트레칭':['앉아서 발목 돌리기'],
+ '앉아서 90/90 고관절 전환':['누워서 두 무릎 좌우로 넘기기'],
+ '한쪽 무릎 꿇고 엉덩이 조이며 골반 앞으로 밀기':['워킹 런지 트위스트','한쪽 무릎 꿇고 골반 앞으로 밀었다 돌아오기'],
+ '깊은 스쿼트 자세에서 좌우로 체중 옮기기':['사이드 런지 (옆으로 체중 옮기기)'],
+ '서서 골반 돌리기 (손은 허리에)':['레그 스윙 좌우 (벽 짚고)','레그 스윙 앞뒤 (벽 짚고)'],
+ '맨몸 굿모닝 (엉덩이 뒤로 빼며 숙이기)':['다운독 자세 유지','인치웜 (손으로 걸어 나갔다 돌아오기)'],
+ '맨몸 스쿼트 (천천히)':['사이드 런지 (옆으로 체중 옮기기)','워킹 런지 트위스트'],
+ '벽 짚고 종아리 스트레칭 (뒷무릎 굽힌 상태)':['다운독 자세 유지'],
+ '한쪽 무릎 꿇은 고관절 앞쪽 스트레칭':['서서 허벅지 앞 스트레칭 (골반 살짝 말아 넣기)','옆으로 누워 허벅지 앞 스트레칭'],
+ '90/90 자세로 앉아 앞다리 쪽으로 상체 숙이기':['앉아서 한 다리 펴고 발끝 잡고 숙이기','누워서 피겨4 둔근 스트레칭'],
+ '앉아서 다리 넓게 벌려 앞으로 숙이기':['벤치에 앉아 다리 넓게 벌리고 숙이기'],
+ '스캐풀라 푸시업 (팔 편 채 날개뼈만 움직이기)':['벽 짚고 스캐풀라 푸시업'],
+ '가벼운 푸시업':['무릎 대고 푸시업','벽 짚고 스캐풀라 푸시업'],
+ '팔 크게 돌리기':['월 엔젤 (벽에 등 대고 팔 올렸다 내리기)'],
+ '팔꿈치 90도 어깨 외회전 (맨몸)':['월 엔젤 (벽에 등 대고 팔 올렸다 내리기)'],
+ '등 뒤로 손깍지 끼고 가슴 펴기 (2초 유지)':['앉아서 날개뼈 모으기','두 팔 문틀 가슴 스트레칭 (팔 머리 위 높이)'],
+ '한 팔씩 문틀 가슴 스트레칭 (팔 어깨 높이)':['엎드려 한 팔 옆으로 뻗어 가슴 스트레칭'],
+ '두 팔 문틀 가슴 스트레칭 (팔 머리 위 높이)':['엎드려 스핑크스 자세'],
+ '벽에 손바닥 대고 몸 돌려 이두 스트레칭':['앉아서 팔 앞으로 뻗어 손목 스트레칭'],
+ '기둥 잡고 엉덩이 뒤로 빼며 광배 스트레칭':['팔 앞으로 뻗은 차일드 포즈','차일드 포즈'],
+ '머리 뒤 삼두 스트레칭':['서서 팔 뻗어 옆구리 늘리기','앉아서 팔 가로질러 어깨 뒤 스트레칭'],
+ '팔 가로질러 어깨 뒤 스트레칭':['머리 뒤 삼두 스트레칭','앉아서 팔 가로질러 어깨 뒤 스트레칭'],
+ '등 뒤로 손깍지 끼고 어깨 앞쪽 열기':['엎드려 코브라 자세','앉아서 날개뼈 모으기'],
+ '목 옆 늘리기':['앉아서 손으로 머리 눌러 목 뒤 늘리기'],
+ '무릎 꿇고 벤치에 팔꿈치 올려 가슴 내리기':['엎드려 스핑크스 자세','팔 앞으로 뻗은 차일드 포즈']
+};
+let SDX=null;
+function sdTpl(n){
+  if(SD[n])return SD[n];
+  if(!SDX){SDX={};ROUTINES.forEach(r=>{if(r.type!=='strength')r.steps.forEach(s=>{if(!SDX[s.n])SDX[s.n]=s;});});}
+  return SDX[n]||null;
+}
+function stretchAlt(base,t){
+  const o={n:t.n,s:t.s};
+  ['reps','sides','k','pnf','cue','tip','tips'].forEach(k=>{if(t[k]!=null)o[k]=t[k];});
+  if(!base.pnf){delete o.pnf;delete o.cue;}
+  let s=t.s;
+  if(!t.reps&&!base.reps&&!base.k&&!t.k&&base.s)s=Math.max(o.pnf?40:10,base.s);
+  o.s=s;
+  o.d=String(t.d).replace('{s}',s).replace(/(\d+)초/,(m,a)=>(t.reps?m:s+'초'));
+  if(!o.pnf)o.d=o.d.replace(/\s*\+\s*PNF/,'');
+  o.alt=true;o.orig=base.n;
+  return o;
+}
 function altList(rt,i){
-  if(!rt||rt.type!=='strength'||!rt.steps[i])return [];
+  if(!rt||!rt.steps[i])return [];
   const names=rt.steps.map(x=>x.n);
+  if(rt.type!=='strength'){
+    return(SALT[rt.steps[i].n]||[]).filter(n=>names.indexOf(n)<0).map(n=>{const t=sdTpl(n);return t?[n,null,null,null,null,Object.assign({n},t)]:null;}).filter(Boolean);
+  }
   return(ALTS[rt.steps[i].n]||[]).filter(a=>names.indexOf(a[0])<0);
 }
 function altStep(base,a){
+  if(a[5])return stretchAlt(base,a[5]);
   const sets=((base.d||'').match(/^(\d+)세트/)||[])[1];
   const st={n:a[0],d:(sets?sets+'세트 × ':'')+(a[2]===1?'좌우 ':'')+a[1]+(a[4]?' · '+a[4]:''),rp:a[1],est:a[3]||base.est,alt:true,orig:base.n};
   if(a[2]===1)st.per='좌우 각각';else if(a[2]===2)st.per='한 다리씩';
@@ -829,13 +945,14 @@ function altStep(base,a){
 }
 /* map = {동작 번호: 대체 동작 이름}. 대체한 동작은 같은 자리·같은 세트 수로 바뀌고, 짝 동작의 '이어서' 안내도 새 이름으로 */
 function swapView(rt,map){
-  if(!rt||rt.type!=='strength'||!map)return rt;
+  if(!rt||!map)return rt;
   const steps=rt.steps.slice();let any=false;
   Object.keys(map).forEach(k=>{
     if(!map[k])return;const i=+k,a=altList(rt,i).find(x=>x[0]===map[k]);
     if(!a)return;steps[i]=altStep(rt.steps[i],a);any=true;
   });
   if(!any)return rt;
+  if(rt.type!=='strength')return Object.assign({},rt,{steps});
   rt.blocks.forEach(b=>{
     if(b.i.length!==2)return;
     const [x,y]=b.i;if(!steps[x].alt&&!steps[y].alt)return;
@@ -851,7 +968,7 @@ function setSwap(rt,i,val){
   if(Object.keys(m).length)SWAPS[rt.id]=m;else delete SWAPS[rt.id];
   store.set('swap',SWAPS);
 }
-const runView=(rt,sv)=>rt.type==='strength'?withOrder(swapView(rt,(sv&&sv.swap)||SWAPS[rt.id]||{}),sv&&sv.border):view(rt);
+const runView=(rt,sv)=>{const sm=(sv&&sv.swap)||SWAPS[rt.id]||{};return rt.type==='strength'?withOrder(swapView(rt,sm),sv&&sv.border):view(rt,sm);};
 /* 운동 순서 바꾸기: border = 원래 블록 번호를 실제 순서대로 나열한 배열 */
 function withOrder(v,border){
   if(!v||v.type!=='strength'||!Array.isArray(border))return v;
@@ -859,10 +976,11 @@ function withOrder(v,border){
   if(border.length!==n||border.slice().sort((a,b)=>a-b).some((x,i)=>x!==i))return v;
   return Object.assign({},v,{blocks:border.map(i=>Object.assign({},v.blocks[i],{o:i}))});
 }
-function view(rt){
-  if(rt.type==='strength')return swapView(rt,SWAPS[rt.id]);
+function view(rt,sm){
+  const b=swapView(rt,sm||SWAPS[rt.id]);
+  if(rt.type==='strength')return b;
   const k=LEN[settings.len]||1;
-  return k===1?rt:Object.assign({},rt,{steps:rt.steps.map(st=>scaleStep(st,k))});
+  return k===1?b:Object.assign({},b,{steps:b.steps.map(st=>scaleStep(st,k))});
 }
 
 /* 구간 만들기 */
@@ -1374,7 +1492,7 @@ function paintPreview(){
     if(st.alt){const bd=document.createElement('span');bd.className='badge alt';bd.textContent='대체';nm.appendChild(bd);}
     const dt=document.createElement('span');dt.className='st-detail';dt.textContent=isOff?'뺀 동작':st.d;
     box.appendChild(nm);box.appendChild(dt);
-    if(rt.type==='strength'&&!editing&&!isOff&&altList(rt,i).length){
+    if(!editing&&!isOff&&altList(rt,i).length){
       const ab=document.createElement('button');ab.type='button';ab.className='alt-btn';
       const op=altOpen.has(rt.id+i);
       ab.textContent='대체 동작 ▾';ab.setAttribute('aria-expanded',String(op));
@@ -1511,7 +1629,7 @@ function paintSegment(){
   $('#tSwap').hidden=!swapAvail(seg);
 }
 function swapAvail(seg){
-  if(!R||!R.base||R.base.type!=='strength'||!seg)return false;
+  if(!R||!R.base||!seg)return false;
   return altList(R.base,seg.step).length>0||(seg.step2!=null&&altList(R.base,seg.step2).length>0);
 }
 function cueVoice(seg,st){
@@ -1906,6 +2024,15 @@ const setsText=a=>{
 };
 /* 펼친 동작: 이번 기록 + 최근 기록 + 그 동작으로 이동 */
 function fillDetail(box,st,s,state,f){
+  if(logOn(R.base))fillRecs(box,st,s,state);
+  fillAlt(box,s);
+  if(state!=='cur'){
+    const g=document.createElement('button');g.type='button';g.className='go';g.textContent='이 동작으로 이동';
+    g.addEventListener('click',()=>{closeList();jump(f);});
+    box.appendChild(g);
+  }
+}
+function fillRecs(box,st,s,state){
   const arr=LOG[lk(st)]||[];
   const cur=arr.find(x=>x.t===R.sid&&x.sets.length);
   const h1=document.createElement('h4');h1.textContent='이번 운동';box.appendChild(h1);
@@ -1922,7 +2049,9 @@ function fillDetail(box,st,s,state,f){
     r.firstChild.textContent=fmtDay(x.t);r.lastChild.textContent=setsText(x.sets);
     box.appendChild(r);
   });
-  const bi=R.base.steps.findIndex((x,j)=>j===s);
+}
+function fillAlt(box,s){
+  const bi=s;
   if(bi>=0&&altList(R.base,bi).length){
     const h3=document.createElement('h4');h3.textContent='대체 동작';box.appendChild(h3);
     box.appendChild(altPicker(R.base,bi,R.swap[bi],val=>swapInRun(bi,val)));
@@ -1932,23 +2061,31 @@ function fillDetail(box,st,s,state,f){
     kl.appendChild(kc);kl.appendChild(document.createTextNode(' 다음 운동에도 이 동작으로'));
     box.appendChild(kl);
   }
-  if(state!=='cur'){
-    const g=document.createElement('button');g.type='button';g.className='go';g.textContent='이 동작으로 이동';
-    g.addEventListener('click',()=>{closeList();jump(f);});
-    box.appendChild(g);
-  }
 }
 function swapInRun(i,val){
   if(!R||!R.active)return;
   if(val)R.swap[i]=val;else delete R.swap[i];
   if(swapKeep)setSwap(R.base,i,val);
-  R.rt=withOrder(swapView(R.base,R.swap),R.border);
+  const strength=R.base.type==='strength';
+  const oldSeg=R.segs[R.idx],cs=oldSeg.step,oldFirst=R.segs.findIndex(g=>g.step===cs),off=R.idx-oldFirst;
+  R.rt=strength?withOrder(swapView(R.base,R.swap),R.border):view(R.base,R.swap);
   const segs=buildSegments(R.rt),cum=[];let acc=0;
   segs.forEach((g,k)=>{cum[k]=acc;acc+=segW(g);});
   const keep=Math.min(R.idx,segs.length-1);
   R.segs=segs;R.cum=cum;R.total=acc;
-  R.order=[];segs.forEach(g=>{if(g.type==='set'&&R.order.indexOf(g.step)<0)R.order.push(g.step);});
+  const mark=strength?'set':'prep';
+  R.order=[];segs.forEach(g=>{if(g.type===mark&&R.order.indexOf(g.step)<0)R.order.push(g.step);});
   R.idx=keep;
+  if(!strength){
+    const nf=segs.findIndex(g=>g.step===cs),cnt=segs.filter(g=>g.step===cs).length;
+    if(nf>=0){
+      R.idx=(i===cs)?nf:nf+Math.max(0,Math.min(off,cnt-1));
+      if(i===cs){R.segStart=performance.now();if(R.paused)R.pauseRemain=segs[R.idx].dur*1000;}
+    }
+    enterSegment(i===cs);if(i===cs&&!R.paused)book(true);paintList();
+    toast(val?'대체 동작으로 바꿨어요':'기본 동작으로 돌렸어요');
+    return;
+  }
   paintSegment();persist();paintList();
   toast(val?'대체 동작으로 바꿨어요':'기본 동작으로 돌렸어요');
 }
@@ -1970,7 +2107,7 @@ function paintList(){
     }else if(state==='cur')tag='진행 중';
     else if(state==='done')tag='완료';
     const li=document.createElement('li');li.className=state;
-    const logged=logOn(R.base);
+    const logged=logOn(R.base)||(!strength&&state==='cur'&&altList(R.base,s).length>0);
     if(logged&&listOpen.has(s))li.classList.add('open');
     const b=document.createElement('button');b.type='button';
     const no=document.createElement('span');no.className='no';no.textContent=state==='done'?'✓':String(k+1);
