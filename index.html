@@ -370,7 +370,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v52</p>
+    <p class="ver">앱 버전 v53</p>
   </div></details>
 </main>
 
@@ -2025,7 +2025,8 @@ const setsText=a=>{
 /* 펼친 동작: 이번 기록 + 최근 기록 + 그 동작으로 이동 */
 function fillDetail(box,st,s,state,f){
   if(logOn(R.base))fillRecs(box,st,s,state);
-  fillAlt(box,s);
+  const pg=R.segs.find(g=>g.step===s&&g.step2!=null),p2=pg?pg.step2:-1;
+  if(p2>=0){fillAlt(box,s,true);fillAlt(box,p2,true);}else fillAlt(box,s);
   if(state!=='cur'){
     const g=document.createElement('button');g.type='button';g.className='go';g.textContent='이 동작으로 이동';
     g.addEventListener('click',()=>{closeList();jump(f);});
@@ -2050,10 +2051,10 @@ function fillRecs(box,st,s,state){
     box.appendChild(r);
   });
 }
-function fillAlt(box,s){
+function fillAlt(box,s,named){
   const bi=s;
   if(bi>=0&&altList(R.base,bi).length){
-    const h3=document.createElement('h4');h3.textContent='대체 동작';box.appendChild(h3);
+    const h3=document.createElement('h4');h3.textContent=named?'대체 동작 · '+R.base.steps[bi].n:'대체 동작';box.appendChild(h3);
     box.appendChild(altPicker(R.base,bi,R.swap[bi],val=>swapInRun(bi,val)));
     const kl=document.createElement('label');kl.className='alt-keep';
     const kc=document.createElement('input');kc.type='checkbox';kc.checked=swapKeep;
