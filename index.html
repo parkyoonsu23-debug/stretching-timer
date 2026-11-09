@@ -370,7 +370,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v57</p>
+    <p class="ver">앱 버전 v58</p>
   </div></details>
 </main>
 
@@ -1094,7 +1094,7 @@ function logRow(st,i,seg,label){
   const h=row.querySelector('.lg-h');h.textContent=d.hint;h.classList.toggle('up',d.up);h.hidden=!d.hint;
   row.querySelectorAll('.lg-c button').forEach(b=>b.addEventListener('click',()=>{
     const wrap=b.parentNode,inp=wrap.querySelector('input'),dir=+b.dataset.d;
-    if(wrap.dataset.k==='w'){const v=parseFloat(String(inp.value).replace(',','.'))||0;inp.value=fmtW(Math.max(0,v+dir*step));}
+    if(wrap.dataset.k==='w'){const v=parseFloat(String(inp.value).replace(',','.'))||0;inp.value=fmtW(Math.max(0,v+dir));}
     else{const v=parseInt(inp.value,10)||0;inp.value=Math.max(0,v+dir);}
   }));
   row.querySelectorAll('input').forEach(x=>x.addEventListener('focus',()=>{try{x.select();}catch(e){}}));
