@@ -32,6 +32,8 @@
   body.done .bar { stroke:#8f0f08; }
   body.warn .bar { stroke:#9c0d07; }
   body.warn .tm { color:#9c0d07; font-weight:500; }
+  body.over .bar { stroke:#8f0f08; }
+  body.over .tm { color:#9c0d07; }
   body.urgent .dial { animation:pulse .9s ease-in-out infinite; }
   body.blink .dial { animation:blink .6s steps(2,jump-none) infinite; }
   body.flash .dial { animation:blink .35s steps(2,jump-none) 3; }
@@ -93,6 +95,8 @@
   body.dark .tm { color:#f2f2f2; }
   body.dark.warn .tm { color:#ff6a5e; }
   body.dark .time { font-size:calc(min(92vw,88dvh)*.22); }
+  body.dark.over .bar { stroke:#ff5a4d; }
+  body.dark.over .tm { color:#ff6a5e; }
   body.dark.done { background:#d93025; }
   body.dark.done .app { background:#d93025 !important; }
   body.dark.done .track { stroke:transparent; }
@@ -154,6 +158,7 @@
   <div class="tools">
     <button id="full">⛶ 전체화면</button>
     <button id="snd">🔔 알림음 켜짐</button>
+    <button id="sus">♾ 지속 모드 꺼짐</button>
     <button id="dark">⚫ 검정 화면</button>
     <button id="help">❓ 사용 가이드</button>
   </div>
@@ -207,6 +212,14 @@
       <li>화면을 완전히 끄면 알림이 울리지 않음. 휴대폰에서는 검정 화면 모드로 켜 두는 방식을 권장 (OLED 화면은 검정 부분이 전력을 거의 쓰지 않음)</li>
       <li>브라우저 메뉴의 "홈 화면에 추가"로 바로가기를 만들 수 있음</li>
     </ul>
+    <h3>지속 모드</h3>
+    <ul>
+      <li>"♾ 지속 모드"를 켜 두면, 타이머가 끝나는 순간 알림음이 울리고 끊김 없이 스톱워치로 바뀌어 계속 올라감 (10분 타이머가 끝나면 10:00 → 10:01 → 10:02 …)</li>
+      <li>시계 아래에 "초과 +0:35"처럼 넘긴 시간이 표시되고, 원형 바는 1분마다 한 바퀴 돌며 더 진한 빨강으로 바뀜</li>
+      <li>시계 클릭·<code>Space</code>로 일시정지·계속, <b>초기화</b>를 누르면 처음 설정한 타이머로 돌아감</li>
+      <li>순차 타이머는 모든 단계가 끝난 뒤 전체 시간 합계부터, 특정 시각까지 타이머는 계산된 시간부터 이어서 올라감</li>
+      <li>켜 둔 상태는 다음에 열어도 유지됨</li>
+    </ul>
     <h3>검정 화면 모드</h3>
     <ul>
       <li>"⚫ 검정 화면" 버튼 또는 <code>B</code> 키: 원형 진행 바와 남은 시간만 남기고 나머지는 완전한 검정 화면</li>
@@ -231,6 +244,7 @@
   var $ = function(i){ return document.getElementById(i); };
   var DEFAULTS = ['1','3','5','10','15','30'];
   var total = 600, left = 600, t = null, endAt = 0, sound = true, ctx = null;
+  var over = null, sustain = false;
   var seq = null, targetAt = null, targetHM = null, curText = '10', buf = '', bufTO = null, alertTO = [], blinkTO = null;
   var presets = DEFAULTS.slice();
   var ipc = null;
@@ -238,7 +252,7 @@
 
   function load(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } }
   function store(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
-  presets = load('ct.presets', presets); sound = load('ct.sound', true); curText = load('ct.last', '10');
+  presets = load('ct.presets', presets); sound = load('ct.sound', true); curText = load('ct.last', '10'); sustain = load('ct.sustain', false);
 
   /* ---------- 입력 해석 ---------- */
   function parseTime(str){
@@ -289,6 +303,18 @@
 
   /* ---------- 화면 ---------- */
   function draw(){
+    if(over){
+      var oe = over.el, sh = Math.floor(over.base + oe), B0 = document.body.classList;
+      $('tm').textContent = buf ? buf + '_' : fmt(sh);
+      bar.style.strokeDashoffset = C * (1 - ((oe % 60) / 60));
+      $('sub').textContent = '초과 +' + fmt(Math.floor(oe));
+      B0.remove('warn','urgent','done'); B0.add('over');
+      document.title = fmt(sh) + ' · 초과 · 수업 타이머';
+      document.querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('on', c.dataset.text === curText); });
+      $('go').textContent = t ? '일시정지' : '계속';
+      return;
+    }
+    document.body.classList.remove('over');
     var shown = Math.max(0, Math.ceil(left));
     $('tm').textContent = buf ? buf + '_' : fmt(shown);
     bar.style.strokeDashoffset = C * (1 - (total ? left/total : 0));
@@ -336,13 +362,13 @@
     var tg = parseTarget(text);
     if(tg){
       var ti = targetInfo(tg); if(!ti){ flashBad('이미 지난 시각입니다'); return false; }
-      stop(); clearAlert(); buf = ''; document.body.classList.remove('done');
+      over = null; stop(); clearAlert(); buf = ''; document.body.classList.remove('done');
       seq = null; total = left = ti.sec; targetAt = ti.at; targetHM = tg;
       curText = String(text).trim(); store('ct.last', curText); $('inp').value = curText;
       draw(); if(start) run(); return true;
     }
     var st = parseSeq(text); if(!st) return false;
-    stop(); clearAlert(); buf = ''; targetAt = null; targetHM = null;
+    over = null; stop(); clearAlert(); buf = ''; targetAt = null; targetHM = null;
     document.body.classList.remove('done');
     if(st.length===1 && !st[0].name){ seq = null; total = left = st[0].sec; }
     else { seq = { steps:st, i:0 }; total = left = st[0].sec; }
@@ -354,6 +380,7 @@
   function run(){
     try { ctx = ctx || new (window.AudioContext||window.webkitAudioContext)(); if(ctx.state==='suspended') ctx.resume(); } catch(e){}
     if(t) return;
+    if(over){ over.t0 = Date.now() - over.el*1000; t = setInterval(tick, 200); lockOn(); sendState(); tick(); return; }
     clearAlert(); document.body.classList.remove('done');
     if(left <= 0){ if(seq){ seq.i = 0; total = left = seq.steps[0].sec; } else left = total; }
     if(targetAt && targetAt > Date.now()){ endAt = targetAt; left = (endAt - Date.now())/1000; if(left > total) total = left; }
@@ -368,7 +395,7 @@
   function toggle(){ if(t) pause(); else run(); }
   function resetAll(){
     if(targetHM && apply(curText, false)) return;
-    stop(); clearAlert(); buf = ''; document.body.classList.remove('done'); targetAt = null; targetHM = null;
+    over = null; stop(); clearAlert(); buf = ''; document.body.classList.remove('done','over'); targetAt = null; targetHM = null;
     if(seq){ seq.i = 0; total = left = seq.steps[0].sec; } else left = total;
     draw();
   }
@@ -387,8 +414,12 @@
   function chime(){ tones([[1175,0,.18],[1568,.22,.3]]); }
   function alarmRound(){ tones([[880,0,.35],[880,.45,.35],[880,.9,.35],[1175,1.35,.5]]); }
   function finishAll(){
-    left = 0; stop(); draw();
-    var B = document.body.classList; B.add('done','blink');
+    left = 0;
+    var B = document.body.classList;
+    if(sustain){
+      var base = seq ? seq.steps.reduce(function(a,x){ return a + x.sec; }, 0) : total;
+      over = { base:base, el:Math.max(0,(Date.now()-endAt)/1000), t0:endAt }; B.add('blink'); sendState(); draw();
+    } else { stop(); draw(); B.add('done','blink'); }
     var n = 0; (function r(){ alarmRound(); if(++n < 4) alertTO.push(setTimeout(r, 2600)); })();
     blinkTO = setTimeout(function(){ B.remove('blink'); }, 12000);
     if(ipc) ipc.send('alert');
@@ -396,6 +427,7 @@
     draw();
   }
   function tick(){
+    if(over){ over.el = (Date.now() - over.t0)/1000; draw(); return; }
     left = (endAt - Date.now())/1000;
     if(left <= 0){
       if(seq && seq.i < seq.steps.length-1){
@@ -428,6 +460,8 @@
   $('ttgo').onclick = goTarget;
   $('tt').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); goTarget(); } e.stopPropagation(); });
   $('snd').onclick = function(){ setSound(!sound); };
+  function setSustain(v){ sustain = v; store('ct.sustain', v); $('sus').textContent = sustain ? '♾ 지속 모드 켜짐' : '♾ 지속 모드 꺼짐'; }
+  $('sus').onclick = function(){ setSustain(!sustain); };
   function setSound(v){ sound = v; store('ct.sound', v); $('snd').textContent = sound ? '🔔 알림음 켜짐' : '🔕 알림음 꺼짐'; sendState(); }
   $('full').onclick = function(){
     document.body.classList.toggle('full');
@@ -458,12 +492,14 @@
 
   /* 원형 바를 돌려서 분 단위 조절 (+ 마우스 휠) */
   function adjustBy(n){
+    if(over) return;
     if(t){
       targetAt = null; targetHM = null;
       left = Math.max(1, Math.min(180*60, left + n*60)); total = Math.max(total + n*60, left); endAt = Date.now() + left*1000; draw();
     } else setMinutes(Math.round(total/60) + n);
   }
   function setMinutes(m){
+    if(over) return;
     m = Math.max(1, Math.min(180, m));
     targetAt = null; targetHM = null;
     if(t){ total = left = m*60; endAt = Date.now() + left*1000; if(!seq){ curText = String(m); store('ct.last', curText); $('inp').value = curText; } draw(); return; }
@@ -609,7 +645,7 @@
     document.addEventListener('mouseup', function(){ if(rs){ rs = null; ipc.send('settled'); } });
   }
 
-  setSound(sound);
+  setSound(sound); setSustain(sustain);
   renderPresets();
   if(!apply(curText, false)) apply('10', false);
   sendState();
