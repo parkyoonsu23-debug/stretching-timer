@@ -1,0 +1,17 @@
+{
+  "id": "./",
+  "name": "수업 타이머",
+  "short_name": "수업타이머",
+  "description": "수업 활동용 카운트다운 타이머",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#10162a",
+  "theme_color": "#10162a",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
