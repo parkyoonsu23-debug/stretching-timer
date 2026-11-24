@@ -1,72 +1,621 @@
 <!DOCTYPE html>
-<html lang="ko"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>수업 타이머</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#10162a">
+<meta name="theme-color" content="#fdecea">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
-:root{--bg:#10162a;--fg:#f4f6ff;--mute:#8d97b8;--acc:#4f8cff;--ok:#33c28a;--warn:#ffb340;--bad:#ff5d6c}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,"Noto Sans KR",sans-serif}
-body{display:flex;flex-direction:column;align-items:center;padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);transition:background .4s}
-body.warn{background:#2a2410}body.done{background:#3a1218;animation:blink 1s infinite}
-@keyframes blink{50%{background:#5a1a22}}
-h1{font-size:16px;color:var(--mute);margin:14px 0 0;font-weight:600}
-.ring{position:relative;width:min(78vw,52vh);aspect-ratio:1;margin:12px 0}
-svg{width:100%;height:100%;transform:rotate(-90deg)}
-.bg{stroke:#222b4a}.fg{stroke:var(--acc);stroke-linecap:round;transition:stroke .4s}
-.warn .fg{stroke:var(--warn)}.done .fg{stroke:var(--bad)}
-#time{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:min(20vw,13vh);font-weight:700;font-variant-numeric:tabular-nums}
-#sub{font-size:14px;font-weight:400;color:var(--mute)}
-.presets{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:520px}
-button{font:inherit;color:var(--fg);background:#1d2646;border:0;border-radius:12px;padding:10px 14px;font-size:16px}
-button:active{filter:brightness(1.3)}
-.presets button.sel{background:var(--acc)}
-.row{display:flex;gap:10px;margin:14px 0;align-items:center}
-.main{background:var(--ok);font-size:22px;font-weight:700;padding:14px 38px;border-radius:16px}
-.main.run{background:var(--warn);color:#222}
-input{width:70px;font:inherit;font-size:18px;text-align:center;border-radius:10px;border:0;padding:9px;background:#1d2646;color:var(--fg)}
-label{color:var(--mute);font-size:14px}
-</style></head><body>
-<h1>수업 타이머</h1>
-<div class="ring"><svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="45" fill="none" stroke-width="6"/><circle id="arc" class="fg" cx="50" cy="50" r="45" fill="none" stroke-width="6" stroke-dasharray="282.74" stroke-dashoffset="0"/></svg>
-<div id="time">10:00<span id="sub">대기 중</span></div></div>
-<div class="presets" id="presets"></div>
-<div class="row"><label>직접 입력</label><input id="min" type="number" min="0" max="180" value="" placeholder="분"><label>분</label><input id="sec" type="number" min="0" max="59" value="" placeholder="초"><label>초</label></div>
-<div class="row"><button id="reset">초기화</button><button id="go" class="main">시작</button><button id="add">+1분</button></div>
+  :root { --bg:#fdecea; --card:#fff6f5; --ink:#3a1f1d; --accent:#d93025; --track:#f6cdc9; --done:#b3140c; }
+  * { box-sizing:border-box; margin:0; }
+  html,body { height:100%; }
+  body { background:transparent; overflow:hidden; padding:10px; color:var(--ink); font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif; display:flex; align-items:center; justify-content:center; }
+  .app { width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; background:var(--card); border-radius:28px; padding:20px 18px 16px; box-shadow:0 8px 30px rgba(140,30,20,.18); text-align:center; overflow:hidden; min-width:0; }
+  body.done .app { background:#d93025; box-shadow:none; }
+
+  .presets { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:12px; }
+  .chip { border:1.5px solid var(--track); background:#fff; color:var(--ink); border-radius:999px; padding:6px 13px; font-size:14px; cursor:pointer; max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .chip.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .chip .del { display:none; margin-left:6px; font-weight:700; }
+  body.edit .chip .del { display:inline; }
+  body.edit .chip { border-style:dashed; }
+
+  .dial { position:relative; width:min(88%,calc(100vh - 300px)); min-width:90px; aspect-ratio:1; margin:0 auto 14px; }
+  svg { width:100%; height:100%; transform:rotate(-90deg); }
+  .fillc { fill:rgba(255,255,255,.88); stroke:none; transition:fill .3s; }
+  body.done .fillc { fill:#d93025; }
+  body.done .track { stroke:transparent; }
+  .track { fill:none; stroke:var(--track); stroke-width:10; }
+  .bar { fill:none; stroke:var(--accent); stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset .25s linear; }
+  body.done .bar { stroke:#8f0f08; }
+  body.warn .bar { stroke:#9c0d07; }
+  body.warn .tm { color:#9c0d07; font-weight:500; }
+  body.urgent .dial { animation:pulse .9s ease-in-out infinite; }
+  body.blink .dial { animation:blink .6s steps(2,jump-none) infinite; }
+  body.flash .dial { animation:blink .35s steps(2,jump-none) 3; }
+  @keyframes pulse { 50% { opacity:.55; } }
+  @keyframes blink { 0% { opacity:1; } 100% { opacity:.25; } }
+
+  .time { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:clamp(28px,calc(min(100vw,100vh - 300px)*.2),200px); cursor:pointer; white-space:nowrap; }
+  .tm { font-weight:300; font-variant-numeric:tabular-nums; line-height:1.1; }
+  .sub { font-size:.22em; opacity:.75; margin-top:.15em; max-width:80%; overflow:hidden; text-overflow:ellipsis; }
+  .sub:empty { display:none; }
+  body.done .time { color:#fff; }
+
+  .row { display:flex; gap:10px; }
+  .btn { flex:1; border:0; border-radius:16px; padding:14px; font-size:18px; cursor:pointer; white-space:nowrap; background:#f9d9d6; color:var(--ink); }
+  .btn.main { background:var(--accent); color:#fff; }
+  .custom { display:flex; gap:6px; justify-content:center; align-items:center; margin-top:12px; }
+  .custom input { flex:1; min-width:0; max-width:230px; padding:8px 10px; border-radius:10px; border:1.5px solid var(--track); font-size:15px; }
+  .custom button { border:1.5px solid var(--track); background:#fff; border-radius:10px; padding:8px 11px; cursor:pointer; font-size:14px; white-space:nowrap; }
+  .custom2 { margin-top:8px; font-size:14px; color:#8a4a45; }
+  .custom2 input { flex:0 0 auto; width:120px; }
+  .custom input.bad { border-color:#d93025; background:#fff0ef; }
+  .tools { margin-top:10px; display:flex; flex-wrap:wrap; gap:6px 14px; justify-content:center; }
+  .tools button { white-space:nowrap; background:none; border:0; color:#8a4a45; cursor:pointer; font-size:14px; }
+  .hint { margin-top:6px; font-size:12px; color:#9a6a66; }
+  body.done .hint { color:#fff; }
+
+  .x { position:fixed; top:6px; right:8px; width:26px; height:26px; border:0; border-radius:50%; background:rgba(0,0,0,.08); color:var(--ink); font-size:15px; line-height:26px; cursor:pointer; opacity:0; transition:opacity .15s; z-index:5; display:none; }
+  body.desk .x { display:block; }
+  body:hover .x { opacity:1; }
+  body.done .x { color:#fff; background:rgba(255,255,255,.25); }
+  body.desk { cursor:default; user-select:none; }
+  .frame { position:fixed; inset:0; border:2px solid rgba(217,48,37,.9); box-shadow:inset 0 0 0 1px rgba(255,255,255,.75); border-radius:10px; pointer-events:none; opacity:0; transition:opacity .15s; z-index:15; }
+  body:hover .frame { opacity:1; }
+  .rz:hover { background:rgba(217,48,37,.45); }
+
+
+  .guide { position:fixed; inset:10px; background:#fff; border-radius:22px; box-shadow:0 8px 30px rgba(140,30,20,.3); z-index:30; display:none; flex-direction:column; overflow:hidden; text-align:left; }
+  body.showguide .guide { display:flex; }
+  .guide header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px 10px; border-bottom:1px solid #f3dcd9; }
+  .guide h2 { font-size:18px; color:var(--accent); }
+  .guide .gx { border:0; background:#f9d9d6; border-radius:10px; padding:6px 14px; font-size:14px; cursor:pointer; color:var(--ink); }
+  .guide .gb { padding:6px 18px 16px; overflow:auto; font-size:14px; line-height:1.6; user-select:text; }
+  .guide h3 { font-size:14px; margin:14px 0 4px; color:var(--done); }
+  .guide ul { padding-left:18px; }
+  .guide li { margin:2px 0; }
+  .guide code { background:#fdecea; border-radius:5px; padding:1px 6px; font-size:13px; }
+
+
+  /* 검정 화면 모드 */
+  body.dark { background:#000; padding:0; }
+  body.dark .presets, body.dark .row, body.dark .custom, body.dark .custom2, body.dark .tools, body.dark .hint, body.dark .sub, body.dark .x, body.dark .guide, body.dark .frame { display:none !important; }
+  body.dark.showguide .guide { display:flex !important; }
+  body.dark .app { background:#000 !important; box-shadow:none !important; border-radius:0; padding:0; justify-content:center; }
+  body.dark .dial { width:min(92vw,88dvh); min-width:0; margin:0 auto; }
+  body.dark .fillc { fill:transparent; transition:none; }
+  body.dark .track { stroke:#191919; }
+  body.dark .bar { stroke:#e5362b; }
+  body.dark.warn .bar { stroke:#ff5a4d; }
+  body.dark .tm { color:#f2f2f2; }
+  body.dark.warn .tm { color:#ff6a5e; }
+  body.dark .time { font-size:calc(min(92vw,88dvh)*.22); }
+  body.dark.done { background:#d93025; }
+  body.dark.done .app { background:#d93025 !important; }
+  body.dark.done .track { stroke:transparent; }
+  body.dark.done .bar { stroke:#fff; }
+  body.dark.done .tm { color:#fff; }
+  .dhint { display:none; }
+  body.dark .dhint { display:block; position:fixed; left:0; right:0; bottom:18px; text-align:center; font-size:13px; color:#555; animation:hintfade 5s forwards; pointer-events:none; z-index:6; }
+  @keyframes hintfade { 0%,70% { opacity:1; } 100% { opacity:0; } }
+  body { touch-action:manipulation; }
+  .dial { -webkit-user-select:none; user-select:none; }
+
+  body:not(.desk) { overflow-y:auto; align-items:flex-start; }
+  body:not(.desk) .app { height:auto; min-height:100%; padding:18px 14px 14px; }
+  body:not(.desk) .dial { min-width:min(240px,88%); width:min(88%,calc(100dvh - 300px)); }
+  body:not(.desk) .btn { padding:18px; font-size:20px; }
+  body:not(.desk) .chip { padding:9px 15px; font-size:15px; }
+  body:not(.desk) .custom input { font-size:16px; }
+  body:not(.desk) .custom button { padding:10px 12px; }
+  .d { display:none; } body.desk h3.d, body.desk ul.d { display:block; }
+  .w { display:none; } body:not(.desk) h3.w, body:not(.desk) ul.w { display:block; }
+  @media (max-width:360px), (max-height:430px) {
+    body.desk { padding:6px; }
+    body.desk .presets, body.desk .row, body.desk .custom, body.desk .custom2, body.desk .tools, body.desk .hint, body.desk .guide { display:none !important; }
+    body.desk .app { padding:6px; background:transparent !important; box-shadow:none !important; }
+    body.desk .dial { width:min(100%,calc(100vh - 24px)); min-width:0; margin:0 auto; }
+    body.desk .time { font-size:calc(min(100vw,100vh)*.2); }
+    body.desk .bar, body.desk .track { stroke-width:8; }
+  }
+  @media (max-width:120px), (max-height:120px) {
+    body.desk { padding:3px; }
+    body.desk .app { padding:2px; }
+    body.desk .x { display:none !important; }
+    body.desk .dial { width:min(100%,calc(100vh - 12px)); min-width:0; margin:0 auto; }
+    body.desk .sub { display:none; }
+    body.desk .bar, body.desk .track { stroke-width:9; }
+  }
+</style>
+</head>
+<body>
+<button class="x" id="x" title="닫기">✕</button>
+<div class="app">
+  <div class="presets" id="presets"></div>
+  <div class="dial">
+    <svg viewBox="0 0 120 120"><circle class="fillc" cx="60" cy="60" r="52"/><circle class="track" cx="60" cy="60" r="54"/><circle class="bar" id="bar" cx="60" cy="60" r="54"/></svg>
+    <div class="time" id="time"><div class="tm" id="tm">10:00</div><div class="sub" id="sub"></div></div>
+  </div>
+  <div class="row">
+    <button class="btn main" id="go">시작</button>
+    <button class="btn" id="reset">초기화</button>
+  </div>
+  <div class="custom">
+    <input id="inp" type="text" value="10" placeholder="10 · 1:30 · 활동 10, 정리 2" spellcheck="false">
+    <button id="set">설정</button>
+    <button id="save">저장</button>
+    <button id="edit">편집</button>
+  </div>
+  <div class="custom custom2"><span>특정 시각까지</span><input id="tt" type="time"><button id="ttgo">시작</button></div>
+  <div class="hint" id="hint">원형 바를 돌려 분 조절 · 14:30까지 처럼 쓰면 그 시각까지 · 쉼표로 이어 쓰면 순차 타이머</div>
+  <div class="tools">
+    <button id="full">⛶ 전체화면</button>
+    <button id="snd">🔔 알림음 켜짐</button>
+    <button id="dark">⚫ 검정 화면</button>
+    <button id="help">❓ 사용 가이드</button>
+  </div>
+</div>
+<div class="dhint">두 번 탭하면 나가기 · 한 번 탭하면 시작/정지</div>
+<div class="guide" id="guide">
+  <header><h2>사용 가이드</h2><button class="gx" id="gx">닫기</button></header>
+  <div class="gb">
+    <h3>시작·정지</h3>
+    <ul>
+      <li>시계를 클릭하거나 <code>스페이스바</code>를 누르면 시작·일시정지</li>
+      <li><b>초기화</b>는 처음 설정한 시간으로 되돌림</li>
+    </ul>
+    <h3>시간 정하기</h3>
+    <ul>
+      <li>위쪽 버튼을 누르면 해당 시간으로 맞춰짐 (시작은 시계 클릭)</li>
+      <li><b>원형 바(테두리)를 시계 방향으로 돌리듯 드래그</b>하면 분 단위로 늘어나고, 반대로 돌리면 줄어듦 (한 바퀴 = 60분, 최대 180분). PC에서는 창 어디서든 마우스 휠을 굴리면 1분씩, <code>Shift</code>+휠은 5분씩 조절됨 (타이머가 도는 중에는 남은 시간이 늘고 줄어듦, 멈춘 상태에서는 설정 시간이 바뀜)</li>
+      <li>입력칸: <code>7</code> = 7분, <code>1:30</code> = 1분 30초, <code>45초</code> = 45초 → <code>Enter</code>는 바로 시작, <b>설정</b>은 시간만 맞춤</li>
+      <li>창을 클릭한 뒤 숫자 키를 누르고 <code>Enter</code>를 치면 바로 시작 (<code>Esc</code>는 취소)</li>
+    </ul>
+    <h3>특정 시각까지</h3>
+    <ul>
+      <li>"특정 시각까지" 칸에서 시각을 고르고 <b>시작</b>을 누르면, 지금부터 그 시각까지 남은 시간으로 자동 설정되어 바로 시작 (예: 10:12에 11:00을 고르면 48분 타이머)</li>
+      <li>입력칸에 직접 써도 됨: <code>14:30까지</code>, <code>@14:30</code>, <code>오후 2시 30분까지</code> + <code>Enter</code></li>
+      <li><b>저장</b>하면 프리셋 버튼이 되고, 누를 때마다 그 시점 기준으로 다시 계산됨. 이미 지난 시각은 설정되지 않음</li>
+      <li>일시정지하거나 분을 조절하면 일반 타이머로 바뀜</li>
+    </ul>
+    <h3>순차 타이머</h3>
+    <ul>
+      <li>입력칸에 <code>활동 10, 정리 2, 발표 5</code>처럼 쉼표로 이어 쓰고 <code>Enter</code></li>
+      <li>단계가 끝나면 짧은 알림음과 함께 다음 단계가 자동 시작되고, 시계 아래에 현재 단계가 표시됨</li>
+      <li>이름은 생략 가능: <code>10, 2:30, 5</code></li>
+    </ul>
+    <h3>시간 저장·삭제</h3>
+    <ul>
+      <li>입력칸 내용을 <b>저장</b>하면 위쪽 버튼으로 추가됨 (순차 타이머도 가능)</li>
+      <li><b>편집</b>을 누르면 버튼마다 ×가 생기고, 누르면 삭제 → <b>완료</b>로 마침</li>
+    </ul>
+    <h3 class="d">창 조작</h3>
+    <ul class="d">
+      <li>창이 작아지면(가로 360px 또는 세로 430px 이하) 버튼이 사라지고 투명한 원형 시계만 남으며, 창은 정사각형으로 유지됨</li>
+      <li>시계 안쪽(원형 바 안)을 끌면 창 이동. 화면 가장자리 가까이 가면 자동으로 붙고, 화면 밖으로 나가지 않음</li>
+      <li>창 위에 마우스를 올리면 테두리가 나타남. 변이나 모서리를 끌면 크기 조절</li>
+      <li>우클릭 메뉴: 시작·정지, 시간 선택, 항상 위에 표시, 알림음, 전체화면, 사용 가이드, 닫기</li>
+      <li>마지막 크기와 위치는 다음 실행 때 그대로 복원됨</li>
+    </ul>
+    <h3 class="w">휴대폰에서 쓸 때</h3>
+    <ul class="w">
+      <li>시작할 때 화면 꺼짐을 막아 줌 (브라우저가 허용하는 경우). 화면이 꺼지면 알림음이 늦거나 안 울릴 수 있으므로 타이머 중에는 화면을 켜 둘 것</li>
+      <li>알림음은 시작 버튼을 누른 뒤부터 울림. 무음 모드에서는 소리 대신 화면 깜빡임·진동(안드로이드)으로 확인</li>
+      <li>화면을 완전히 끄면 알림이 울리지 않음. 휴대폰에서는 검정 화면 모드로 켜 두는 방식을 권장 (OLED 화면은 검정 부분이 전력을 거의 쓰지 않음)</li>
+      <li>브라우저 메뉴의 "홈 화면에 추가"로 바로가기를 만들 수 있음</li>
+    </ul>
+    <h3>검정 화면 모드</h3>
+    <ul>
+      <li>"⚫ 검정 화면" 버튼 또는 <code>B</code> 키: 원형 진행 바와 남은 시간만 남기고 나머지는 완전한 검정 화면</li>
+      <li>한 번 탭: 시작·정지 / 두 번 탭(또는 <code>Esc</code>, <code>B</code>): 모드 종료</li>
+      <li>이 모드에서는 화면이 꺼지지 않도록 요청함. 종료 시에는 화면 전체가 빨갛게 깜빡임</li>
+    </ul>
+    <h3>알림</h3>
+    <ul>
+      <li>남은 시간 1분 이하: 진한 빨간색 / 10초 이하: 원이 깜빡임</li>
+      <li>종료: 시계가 깜빡이고 알림음이 4번 울림 (앱에서는 창이 다른 창 위로 올라옴). 화면을 건드리면 멈춤</li>
+    </ul>
+    <h3>단축키</h3>
+    <ul>
+      <li><code>Space</code> 시작·정지 · <code>숫자 + Enter</code> 시간 지정 시작 · <code>F10</code> 항상 위 · <code>F11</code> 전체화면 · <code>F1</code> 사용 가이드</li>
+    </ul>
+  </div>
+</div>
 <script>
-const $=id=>document.getElementById(id);
-let total=600,left=600,run=false,end=0,tick=null,lock=null;
-const PRE=[1,3,5,10,15,20,30,40,50];
-PRE.forEach(m=>{const b=document.createElement('button');b.textContent=m+'분';b.onclick=()=>set(m*60);b.dataset.s=m*60;$('presets').appendChild(b)});
-function fmt(s){s=Math.max(0,Math.ceil(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return(h?h+':'+String(m).padStart(2,'0'):String(m).padStart(2,'0'))+':'+String(r).padStart(2,'0')}
-function draw(){
- $('time').firstChild.nodeValue=fmt(left);
- $('arc').style.strokeDashoffset=282.74*(1-(total?left/total:0));
- document.body.classList.toggle('warn',run&&left<=60&&left>0);
- document.body.classList.toggle('done',left<=0&&total>0&&!run&&finished);
- $('go').textContent=run?'일시정지':(left<total&&left>0?'계속':'시작');
- $('go').classList.toggle('run',run);
- document.querySelectorAll('.presets button').forEach(b=>b.classList.toggle('sel',+b.dataset.s===total));
-}
-let finished=false;
-function set(s){try{localStorage.setItem('ct_last',s)}catch(e){}stop();total=left=s;finished=false;$('sub').textContent='대기 중';draw()}
-async function wake(on){try{if(on&&navigator.wakeLock){lock=await navigator.wakeLock.request('screen')}else if(lock){lock.release();lock=null}}catch(e){}}
-let ctx=null,nodes=[];
-function ac(){if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();return ctx}
-function schedule(sec){cancelBeep();try{const a=ac(),t0=a.currentTime+sec;[0,.4,.8].forEach(d=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=880;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.0001,t0+d);g.gain.exponentialRampToValueAtTime(.5,t0+d+.02);g.gain.exponentialRampToValueAtTime(.001,t0+d+.3);o.start(t0+d);o.stop(t0+d+.32);nodes.push(o)})}catch(e){}}
-function cancelBeep(){nodes.forEach(o=>{try{o.stop()}catch(e){}});nodes=[]}
-function buzz(){try{navigator.vibrate&&navigator.vibrate([400,150,400,150,400])}catch(e){}}
-function stop(){cancelBeep();run=false;clearInterval(tick);wake(false)}
-function start(){if(left<=0)return;run=true;finished=false;end=Date.now()+left*1000;$('sub').textContent='진행 중';wake(true);schedule(left);tick=setInterval(()=>{left=(end-Date.now())/1000;if(left<=0){left=0;stop();finished=true;$('sub').textContent='시간 종료!';buzz()}draw()},200);draw()}
-$('go').onclick=()=>{if(run){stop();$('sub').textContent='일시정지'}else{if(finished)set(total);start()}draw()};
-$('reset').onclick=()=>set(total);
-$('add').onclick=()=>{total+=60;left+=60;if(run){end+=60000;schedule(left)}finished=false;draw()};
-function custom(){const s=(+$('min').value||0)*60+(+$('sec').value||0);if(s>0)set(s)}
-$('min').onchange=$('sec').onchange=custom;
-document.addEventListener('visibilitychange',()=>{if(run&&!document.hidden)wake(true)});
-let init=600;try{init=+localStorage.getItem('ct_last')||600}catch(e){}
-set(init);
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-</script></body></html>
+(function(){
+  var C = 2*Math.PI*54, bar = document.getElementById('bar');
+  bar.style.strokeDasharray = C;
+  var $ = function(i){ return document.getElementById(i); };
+  var DEFAULTS = ['1','3','5','10','15','30'];
+  var total = 600, left = 600, t = null, endAt = 0, sound = true, ctx = null;
+  var seq = null, targetAt = null, targetHM = null, curText = '10', buf = '', bufTO = null, alertTO = [], blinkTO = null;
+  var presets = DEFAULTS.slice();
+  var ipc = null;
+  try { ipc = require('electron').ipcRenderer; document.body.classList.add('desk'); } catch(e){}
+
+  function load(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } }
+  function store(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+  presets = load('ct.presets', presets); sound = load('ct.sound', true); curText = load('ct.last', '10');
+
+  /* ---------- 입력 해석 ---------- */
+  function parseTime(str){
+    str = String(str).trim(); var m, sec = null;
+    if((m = str.match(/^(\d+):(\d{1,2})$/))) sec = (+m[1])*60 + (+m[2]);
+    else if((m = str.match(/^(\d+(?:\.\d+)?)\s*(?:분|m|min)?$/i))) sec = Math.round(parseFloat(m[1])*60);
+    else if((m = str.match(/^(\d+)\s*(?:초|s|sec)$/i))) sec = +m[1];
+    if(sec === null || sec < 1 || sec > 180*60) return null;
+    return sec;
+  }
+  function parseSeq(text){
+    var parts = String(text).split(/[,，\n]+/).map(function(s){ return s.trim(); }).filter(Boolean);
+    if(!parts.length) return null;
+    var steps = [];
+    for(var i=0;i<parts.length;i++){
+      var m = parts[i].match(/^(.*?)\s*(\d+(?::\d{1,2})?(?:\.\d+)?(?:\s*(?:분|초))?)$/);
+      if(!m) return null;
+      var sec = parseTime(m[2]); if(sec === null) return null;
+      steps.push({ name:m[1].trim(), sec:sec });
+    }
+    return steps;
+  }
+  function parseTarget(str){
+    str = String(str).trim(); var m = str.match(/^[@~]\s*(.+)$/), body = null;
+    if(m) body = m[1]; else { m = str.match(/^(.+?)\s*까지$/); if(m) body = m[1]; }
+    if(body === null) return null;
+    var r = body.trim().match(/^(?:(오전|오후)\s*)?(\d{1,2})\s*(?::|시)\s*(\d{1,2})?\s*분?$/);
+    if(!r) return null;
+    var h = +r[2], mi = r[3] ? +r[3] : 0;
+    if(r[1] === '오후' && h < 12) h += 12; if(r[1] === '오전' && h === 12) h = 0;
+    if(h > 23 || mi > 59) return null;
+    return { h:h, m:mi };
+  }
+  function targetInfo(tg){
+    var d = new Date(); d.setHours(tg.h, tg.m, 0, 0);
+    var sec = Math.ceil((d.getTime() - Date.now())/1000);
+    return sec > 0 ? { sec:sec, at:d.getTime() } : null;
+  }
+  function pad2(n){ return (n<10?'0':'') + n; }
+  function fmt(s){ var m = Math.floor(s/60), r = s%60; return m + ':' + (r<10?'0':'') + r; }
+  function short(sec){ var m = Math.floor(sec/60), r = sec%60; return m && !r ? m+'분' : m ? m+'분'+r+'초' : r+'초'; }
+  function labelOf(text){
+    var tg = parseTarget(text); if(tg) return '~' + pad2(tg.h) + ':' + pad2(tg.m);
+    var st = parseSeq(text); if(!st) return text;
+    if(st.length===1 && !st[0].name) return short(st[0].sec);
+    return '▶ ' + st.map(function(s){ return (s.name||'') + (s.name ? ' ' : '') + short(s.sec); }).join(' · ');
+  }
+
+  /* ---------- 화면 ---------- */
+  function draw(){
+    var shown = Math.max(0, Math.ceil(left));
+    $('tm').textContent = buf ? buf + '_' : fmt(shown);
+    bar.style.strokeDashoffset = C * (1 - (total ? left/total : 0));
+    $('sub').textContent = targetHM ? (pad2(targetHM.h) + ':' + pad2(targetHM.m) + '까지') : seq ? ((seq.steps[seq.i].name || '단계') + ' · ' + (seq.i+1) + '/' + seq.steps.length) : '';
+    var B = document.body.classList;
+    B.toggle('warn', left>0 && left<=60 && (!!t || left<total));
+    B.toggle('urgent', !!t && left>0 && left<=10);
+    document.title = (t ? fmt(shown) + ' · ' : '') + (seq ? (seq.steps[seq.i].name||'') + ' · ' : '') + '수업 타이머';
+    document.querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('on', c.dataset.text === curText); });
+    $('go').textContent = t ? '일시정지' : (left<=0 ? '다시' : (left<total ? '계속' : '시작'));
+  }
+  function renderPresets(){
+    var box = $('presets'); box.innerHTML = '';
+    presets.forEach(function(text){
+      var b = document.createElement('button');
+      b.className = 'chip'; b.dataset.text = text;
+      b.appendChild(document.createTextNode(labelOf(text)));
+      var d = document.createElement('span'); d.className = 'del'; d.textContent = '×'; b.appendChild(d);
+      b.onclick = function(){
+        if(document.body.classList.contains('edit')){
+          presets = presets.filter(function(p){ return p !== text; }); store('ct.presets', presets); renderPresets(); sendState();
+        } else apply(text, false);
+      };
+      box.appendChild(b);
+    });
+    draw();
+  }
+  function sendState(){
+    if(!ipc) return;
+    ipc.send('state', { presets: presets.map(function(p){ return { text:p, label:labelOf(p) }; }), running: !!t, sound: sound });
+  }
+
+  /* ---------- 타이머 동작 ---------- */
+  function stop(){ if(t){ clearInterval(t); t = null; } lockOff(); sendState(); }
+  function clearAlert(){
+    alertTO.forEach(clearTimeout); alertTO = []; clearTimeout(blinkTO);
+    document.body.classList.remove('blink','flash');
+  }
+  var badTO = null;
+  function flashBad(msg){
+    $('inp').classList.add('bad'); var h = $('hint'), old = h.dataset.old || h.textContent; h.dataset.old = old; h.textContent = msg;
+    clearTimeout(badTO); badTO = setTimeout(function(){ $('inp').classList.remove('bad'); h.textContent = old; }, 2200);
+  }
+  function apply(text, start){
+    var tg = parseTarget(text);
+    if(tg){
+      var ti = targetInfo(tg); if(!ti){ flashBad('이미 지난 시각입니다'); return false; }
+      stop(); clearAlert(); buf = ''; document.body.classList.remove('done');
+      seq = null; total = left = ti.sec; targetAt = ti.at; targetHM = tg;
+      curText = String(text).trim(); store('ct.last', curText); $('inp').value = curText;
+      draw(); if(start) run(); return true;
+    }
+    var st = parseSeq(text); if(!st) return false;
+    stop(); clearAlert(); buf = ''; targetAt = null; targetHM = null;
+    document.body.classList.remove('done');
+    if(st.length===1 && !st[0].name){ seq = null; total = left = st[0].sec; }
+    else { seq = { steps:st, i:0 }; total = left = st[0].sec; }
+    curText = String(text).trim(); store('ct.last', curText); $('inp').value = curText;
+    draw();
+    if(start) run();
+    return true;
+  }
+  function run(){
+    try { ctx = ctx || new (window.AudioContext||window.webkitAudioContext)(); if(ctx.state==='suspended') ctx.resume(); } catch(e){}
+    if(t) return;
+    clearAlert(); document.body.classList.remove('done');
+    if(left <= 0){ if(seq){ seq.i = 0; total = left = seq.steps[0].sec; } else left = total; }
+    if(targetAt && targetAt > Date.now()){ endAt = targetAt; left = (endAt - Date.now())/1000; if(left > total) total = left; }
+    else { targetAt = null; targetHM = null; endAt = Date.now() + left*1000; }
+    t = setInterval(tick, 200); lockOn(); sendState(); tick();
+  }
+  var wl = null;
+  function lockOn(){ try { if(navigator.wakeLock && !wl) navigator.wakeLock.request('screen').then(function(l){ wl = l; l.addEventListener('release', function(){ wl = null; }); }).catch(function(){}); } catch(e){} }
+  function lockOff(){ try { if(wl && !dark){ wl.release(); wl = null; } } catch(e){} }
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible' && t) lockOn(); });
+  function pause(){ stop(); targetAt = null; targetHM = null; draw(); }
+  function toggle(){ if(t) pause(); else run(); }
+  function resetAll(){
+    if(targetHM && apply(curText, false)) return;
+    stop(); clearAlert(); buf = ''; document.body.classList.remove('done'); targetAt = null; targetHM = null;
+    if(seq){ seq.i = 0; total = left = seq.steps[0].sec; } else left = total;
+    draw();
+  }
+  function tones(list){
+    if(!sound) return;
+    try {
+      ctx = ctx || new (window.AudioContext||window.webkitAudioContext)();
+      list.forEach(function(n){
+        var o = ctx.createOscillator(), g = ctx.createGain(), s = ctx.currentTime + n[1];
+        o.frequency.value = n[0]; o.connect(g); g.connect(ctx.destination);
+        g.gain.setValueAtTime(.0001,s); g.gain.exponentialRampToValueAtTime(.45,s+.02); g.gain.exponentialRampToValueAtTime(.0001,s+n[2]);
+        o.start(s); o.stop(s+n[2]+.03);
+      });
+    } catch(e){}
+  }
+  function chime(){ tones([[1175,0,.18],[1568,.22,.3]]); }
+  function alarmRound(){ tones([[880,0,.35],[880,.45,.35],[880,.9,.35],[1175,1.35,.5]]); }
+  function finishAll(){
+    left = 0; stop(); draw();
+    var B = document.body.classList; B.add('done','blink');
+    var n = 0; (function r(){ alarmRound(); if(++n < 4) alertTO.push(setTimeout(r, 2600)); })();
+    blinkTO = setTimeout(function(){ B.remove('blink'); }, 12000);
+    if(ipc) ipc.send('alert');
+    try { if(navigator.vibrate) navigator.vibrate([400,200,400,200,400]); } catch(e){}
+    draw();
+  }
+  function tick(){
+    left = (endAt - Date.now())/1000;
+    if(left <= 0){
+      if(seq && seq.i < seq.steps.length-1){
+        seq.i++; total = left = seq.steps[seq.i].sec; endAt = Date.now() + left*1000;
+        chime(); var B = document.body.classList; B.remove('flash'); void document.body.offsetWidth; B.add('flash');
+        setTimeout(function(){ B.remove('flash'); }, 1100);
+      } else { finishAll(); return; }
+    }
+    draw();
+  }
+
+  /* ---------- 버튼·입력 ---------- */
+  $('go').onclick = toggle;
+  $('reset').onclick = resetAll;
+  $('set').onclick = function(){ if(!apply($('inp').value, false)) $('inp').select(); };
+  $('save').onclick = function(){
+    var txt = $('inp').value.trim() || fmt(Math.round(total));
+    if(!parseSeq(txt)) { $('inp').select(); return; }
+    if(presets.indexOf(txt) < 0){ presets.push(txt); store('ct.presets', presets); renderPresets(); sendState(); }
+  };
+  $('edit').onclick = function(){
+    var on = document.body.classList.toggle('edit'); $('edit').textContent = on ? '완료' : '편집';
+  };
+  $('inp').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); if(apply($('inp').value, true)) $('inp').blur(); else $('inp').select(); }
+    e.stopPropagation();
+  });
+  try { var lt = load('ct.tt', ''); if(lt) $('tt').value = lt; } catch(e){}
+  function goTarget(){ var v = $('tt').value; if(!v){ $('tt').focus(); return; } store('ct.tt', v); if(!apply('@' + v, true)) { $('tt').focus(); } }
+  $('ttgo').onclick = goTarget;
+  $('tt').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); goTarget(); } e.stopPropagation(); });
+  $('snd').onclick = function(){ setSound(!sound); };
+  function setSound(v){ sound = v; store('ct.sound', v); $('snd').textContent = sound ? '🔔 알림음 켜짐' : '🔕 알림음 꺼짐'; sendState(); }
+  $('full').onclick = function(){
+    document.body.classList.toggle('full');
+    try {
+      if(document.fullscreenElement) document.exitFullscreen();
+      else if(document.body.classList.contains('full')) document.documentElement.requestFullscreen().catch(function(){});
+    } catch(e){}
+  };
+  document.addEventListener('fullscreenchange', function(){ if(!document.fullscreenElement) document.body.classList.remove('full'); });
+  $('x').onclick = function(){ window.close(); };
+  if(!ipc) $('time').onclick = function(){ if(!dark) toggle(); };
+
+  /* 숫자 키로 바로 입력 */
+  function showBuf(){ clearTimeout(bufTO); if(buf) bufTO = setTimeout(function(){ buf = ''; draw(); }, 6000); draw(); }
+  document.addEventListener('mousedown', function(){ if(alertTO.length || document.body.classList.contains('blink')) clearAlert(); }, true);
+  document.addEventListener('keydown', function(e){
+    if(alertTO.length || document.body.classList.contains('blink')) clearAlert();
+    if(e.target.tagName === 'INPUT') return;
+    if(e.code === 'Space'){ e.preventDefault(); toggle(); return; }
+    if(/^[0-9:]$/.test(e.key)){ buf += e.key; showBuf(); }
+    else if(e.key === 'Backspace' && buf){ buf = buf.slice(0,-1); showBuf(); }
+    else if(e.key === 'Escape' && buf){ buf = ''; showBuf(); }
+    else if(e.key === 'Enter' && buf){ var b = buf; buf = ''; if(!apply(b, true)) draw(); }
+  });
+
+
+
+
+  /* 원형 바를 돌려서 분 단위 조절 (+ 마우스 휠) */
+  function adjustBy(n){
+    if(t){
+      targetAt = null; targetHM = null;
+      left = Math.max(1, Math.min(180*60, left + n*60)); total = Math.max(total + n*60, left); endAt = Date.now() + left*1000; draw();
+    } else setMinutes(Math.round(total/60) + n);
+  }
+  function setMinutes(m){
+    m = Math.max(1, Math.min(180, m));
+    targetAt = null; targetHM = null;
+    if(t){ total = left = m*60; endAt = Date.now() + left*1000; if(!seq){ curText = String(m); store('ct.last', curText); $('inp').value = curText; } draw(); return; }
+    if(seq){ clearAlert(); document.body.classList.remove('done'); total = left = m*60; draw(); }
+    else apply(String(m), false);
+  }
+  var dialEl = document.querySelector('.dial'), rd = null, justDragged = false;
+  function onRing(cx, cy){
+    var r = dialEl.getBoundingClientRect(), dx = cx-(r.left+r.width/2), dy = cy-(r.top+r.height/2), q = Math.hypot(dx,dy)/(r.width/2);
+    return q >= .64 && q <= 1.1;
+  }
+  function angleOf(cx, cy){
+    var r = dialEl.getBoundingClientRect();
+    return Math.atan2(cx-(r.left+r.width/2), -(cy-(r.top+r.height/2))) * 180/Math.PI;
+  }
+  dialEl.addEventListener('touchstart', function(e){ var q = e.touches[0]; if(q && onRing(q.clientX, q.clientY)) e.preventDefault(); }, { passive:false });
+  dialEl.addEventListener('pointerdown', function(e){
+    if(e.button > 0 || !onRing(e.clientX, e.clientY)) return;
+    e.preventDefault(); e.stopPropagation();
+    rd = { ang:angleOf(e.clientX, e.clientY), start:Math.round(total/60), acc:0, moved:false, last:null };
+    try { dialEl.setPointerCapture(e.pointerId); } catch(x){}
+  });
+  dialEl.addEventListener('pointermove', function(e){
+    if(!rd) return;
+    var a = angleOf(e.clientX, e.clientY), dlt = a - rd.ang;
+    if(dlt > 180) dlt -= 360; if(dlt < -180) dlt += 360;
+    rd.ang = a; rd.acc += dlt;
+    var raw = rd.start + rd.acc/6;
+    if(raw < 1){ rd.acc = (1-rd.start)*6; raw = 1; }
+    if(raw > 180){ rd.acc = (180-rd.start)*6; raw = 180; }
+    if(Math.abs(rd.acc) > 3) rd.moved = true;
+    if(rd.moved){ var m = Math.round(raw); if(m !== rd.last){ rd.last = m; setMinutes(m); } }
+  });
+  function endRing(){ if(rd){ if(rd.moved){ justDragged = true; setTimeout(function(){ justDragged = false; }, 80); } rd = null; } }
+  dialEl.addEventListener('pointerup', endRing);
+  dialEl.addEventListener('pointercancel', endRing);
+  document.addEventListener('click', function(e){ if(justDragged){ e.stopPropagation(); e.preventDefault(); justDragged = false; } }, true);
+  var wacc = 0;
+  (ipc ? document : dialEl).addEventListener('wheel', function(e){
+    if(e.target.closest && e.target.closest('input,.gb')) return;
+    if(document.body.classList.contains('showguide')) return;
+    e.preventDefault();
+    var step = e.shiftKey ? 5 : 1, n = 0;
+    if(Math.abs(e.deltaY) >= 50){ n = e.deltaY < 0 ? 1 : -1; wacc = 0; }
+    else { wacc += -e.deltaY; if(Math.abs(wacc) >= 50){ n = wacc > 0 ? 1 : -1; wacc = 0; } }
+    if(n) adjustBy(n*step);
+  }, { passive:false });
+
+  /* 검정 화면 모드 */
+  var dark = false, lastTap = 0, tapTO = null;
+  function setDark(on){
+    dark = on; document.body.classList.toggle('dark', on);
+    if(on){
+      lockOn();
+      if(!ipc){ try { document.documentElement.requestFullscreen().catch(function(){}); } catch(e){} }
+    } else {
+      if(!t) lockOff();
+      if(!ipc){ try { if(document.fullscreenElement) document.exitFullscreen(); } catch(e){} }
+    }
+  }
+  $('dark').onclick = function(){ setDark(true); };
+  document.addEventListener('click', function(e){
+    if(!dark || e.target.closest('.guide')) return;
+    var now = Date.now();
+    if(now - lastTap < 350){ clearTimeout(tapTO); lastTap = 0; setDark(false); }
+    else { lastTap = now; tapTO = setTimeout(toggle, 350); }
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.target.tagName === 'INPUT') return;
+    if(e.key === 'b' || e.key === 'B' || e.key === 'ㅠ'){ e.preventDefault(); setDark(!dark); }
+    else if(e.key === 'Escape' && dark && !document.body.classList.contains('showguide')){ setDark(false); }
+  });
+
+  /* 사용 가이드 */
+  function openGuide(){ document.body.classList.add('showguide'); }
+  function closeGuide(){ document.body.classList.remove('showguide'); store('ct.seen', true); }
+  $('help').onclick = openGuide;
+  $('gx').onclick = closeGuide;
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'F1'){ e.preventDefault(); if(ipc) ipc.send('guide'); else openGuide(); }
+    else if(e.key === 'Escape' && document.body.classList.contains('showguide')){ closeGuide(); }
+  }, true);
+
+  /* ---------- 데스크톱 앱 전용: 이동·크기·메뉴 ---------- */
+  if(ipc){
+    ipc.on('cmd', function(e, c){
+      if(c.type === 'apply') apply(c.text, true);
+      else if(c.type === 'toggle') toggle();
+      else if(c.type === 'reset') resetAll();
+      else if(c.type === 'sound') setSound(!sound);
+      else if(c.type === 'guide') openGuide();
+      else if(c.type === 'dark') setDark(!dark);
+    });
+    var d = null;
+    document.addEventListener('mousedown', function(e){
+      if(e.button!==0 || e.target.closest('button,input')) return;
+      d = { sx:e.screenX, sy:e.screenY, wx:window.screenX, wy:window.screenY, w:window.outerWidth, h:window.outerHeight, moved:false, dial:!!e.target.closest('.dial') };
+    });
+    document.addEventListener('mousemove', function(e){
+      if(!d) return;
+      var dx = e.screenX-d.sx, dy = e.screenY-d.sy;
+      if(!d.moved && Math.abs(dx)+Math.abs(dy) < 5) return;
+      d.moved = true; ipc.send('move', d.wx+dx, d.wy+dy, d.w, d.h);
+    });
+    document.addEventListener('mouseup', function(){
+      if(d && !d.moved && d.dial && !dark) toggle();
+      if(d && d.moved) ipc.send('settled');
+      d = null;
+    });
+    var fr = document.createElement('div'); fr.className = 'frame'; document.body.appendChild(fr);
+    var E = 8, Cn = 14, rs = null;
+    [['n','ns-resize'],['s','ns-resize'],['e','ew-resize'],['w','ew-resize'],['ne','nesw-resize'],['sw','nesw-resize'],['nw','nwse-resize'],['se','nwse-resize']].forEach(function(z){
+      var el = document.createElement('div'), k = z[0], st = el.style;
+      el.className = 'rz'; st.cssText = 'position:fixed;z-index:20;cursor:'+z[1]+';';
+      if(k.length===1){
+        if(k==='n'||k==='s'){ st.left=Cn+'px'; st.right=Cn+'px'; st.height=E+'px'; st[k==='n'?'top':'bottom']='0'; }
+        else { st.top=Cn+'px'; st.bottom=Cn+'px'; st.width=E+'px'; st[k==='w'?'left':'right']='0'; }
+      } else { st.width=Cn+'px'; st.height=Cn+'px'; st[k[0]==='n'?'top':'bottom']='0'; st[k[1]==='w'?'left':'right']='0'; }
+      el.addEventListener('mousedown', function(e){
+        if(e.button!==0) return; e.stopPropagation(); e.preventDefault();
+        rs = { k:k, sx:e.screenX, sy:e.screenY, x:window.screenX, y:window.screenY, w:window.outerWidth, h:window.outerHeight };
+      });
+      document.body.appendChild(el);
+    });
+    document.addEventListener('mousemove', function(e){
+      if(!rs) return;
+      var dx = e.screenX-rs.sx, dy = e.screenY-rs.sy, nx = rs.x, ny = rs.y, nw = rs.w, nh = rs.h, M = 56;
+      if(rs.k.indexOf('e')>=0) nw = rs.w+dx;
+      if(rs.k.indexOf('w')>=0){ nw = rs.w-dx; nx = rs.x+dx; }
+      if(rs.k.indexOf('s')>=0) nh = rs.h+dy;
+      if(rs.k.indexOf('n')>=0){ nh = rs.h-dy; ny = rs.y+dy; }
+      if(nw<M){ if(rs.k.indexOf('w')>=0) nx = rs.x+rs.w-M; nw = M; }
+      if(nh<M){ if(rs.k.indexOf('n')>=0) ny = rs.y+rs.h-M; nh = M; }
+      if(nw<=360 || nh<=430){
+        var kk = rs.k, S = (kk==='e'||kk==='w') ? nw : (kk==='n'||kk==='s') ? nh : Math.max(nw,nh);
+        S = Math.max(M,S);
+        nx = kk.indexOf('w')>=0 ? rs.x+rs.w-S : rs.x;
+        ny = kk.indexOf('n')>=0 ? rs.y+rs.h-S : rs.y;
+        nw = nh = S;
+      }
+      ipc.send('bounds', nx, ny, nw, nh);
+    });
+    document.addEventListener('mouseup', function(){ if(rs){ rs = null; ipc.send('settled'); } });
+  }
+
+  setSound(sound);
+  renderPresets();
+  if(!apply(curText, false)) apply('10', false);
+  sendState();
+  if(!load('ct.seen', false)) openGuide();
+  if('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(function(){});
+})();
+</script>
+</body>
+</html>
