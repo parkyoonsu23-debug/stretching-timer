@@ -370,7 +370,7 @@ svg[hidden]{display:none}
       <button type="button" data-len="normal">보통</button>
       <button type="button" data-len="long">길게</button>
     </div>
-    <p class="ver">앱 버전 v59</p>
+    <p class="ver">앱 버전 v60</p>
   </div></details>
 </main>
 
@@ -1044,8 +1044,11 @@ function logDefault(st,setNo,setTotal,sid){
     return{w:0,r:hi,hint:'처음이에요. 무게를 입력하세요',up};
   }
   const maxW=Math.max.apply(null,prev.sets.map(x=>x.w));
-  if(prev.sets.length>=setTotal&&prev.sets.every(x=>x.r>=hi)&&maxW>0)
-    return{w:maxW+step,r:lo,hint:'지난번 전 세트 '+hi+'회 달성 → +'+fmtW(step)+'kg 올려보기',up:true};
+  const lowered=prev.sets.some(x=>x.w<maxW-1e-6);
+  if(prev.sets.length>=setTotal&&prev.sets.every(x=>x.r>=hi)&&maxW>0){
+    if(lowered)hint+=' · 무게를 낮춘 세트가 있어 증량은 보류';
+    else return{w:maxW+step,r:lo,hint:'지난번 전 세트 '+hi+'회 달성 → +'+fmtW(step)+'kg 올려보기',up:true};
+  }
   const same=prev.sets[Math.min(setNo,prev.sets.length)-1];
   return{w:same.w,r:same.r,hint,up};
 }
